@@ -1,4 +1,7 @@
 parameters:
+    #    phpVersion: 70400
+    #    phpVersion: 80100
+    phpVersion: 80200
     level: 8
     ignoreErrors:
         - '#Call to an undefined method Magento\\Framework\\App\\RequestInterface::#'

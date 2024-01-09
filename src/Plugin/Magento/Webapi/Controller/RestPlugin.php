@@ -8,7 +8,6 @@ use Corrivate\RestApiLogger\Helpers\Config;
 use Corrivate\RestApiLogger\Helpers\Aspects;
 use Corrivate\RestApiLogger\Helpers\FilterProcessor;
 use Corrivate\RestApiLogger\Helpers\HeadersFormatter;
-use Corrivate\RestApiLogger\Helpers\Policy;
 use Corrivate\RestApiLogger\Logger\Logger;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
@@ -17,13 +16,13 @@ use Magento\Webapi\Controller\Rest;
 class RestPlugin
 {
     private bool $isAuthRequest = false;
-    private Policy $policy;
+    private string $title;
+    private string $method;
     private Config $config;
     private BodyFormatter $bodyFormatter;
     private HeadersFormatter $headersFormatter;
     private Logger $logger;
     private FilterProcessor $filterProcessor;
-    private Aspects $aspects;
 
 
     public function __construct(
@@ -39,8 +38,6 @@ class RestPlugin
         $this->bodyFormatter = $bodyFormatter;
         $this->headersFormatter = $headersFormatter;
         $this->filterProcessor = $filterProcessor;
-        $this->policy = new Policy();
-        $this->aspects = new Aspects();
     }
 
     /**
@@ -57,35 +54,38 @@ class RestPlugin
 
             $this->isAuthRequest = $this->isAuthorizationRequest($request->getPathInfo());
 
-            $this->aspects->method = strtoupper($request->getMethod());
+            $this->method = strtoupper($request->getMethod());
 
-            if (!in_array($this->aspects->method, $this->config->logRequestMethods())) {
+            if (!in_array($this->method, $this->config->logRequestMethods())) {
                 return [$request];
             }
 
-            $this->aspects->user_agent = $request->getHeader('User-Agent') ?? '';
-            $this->aspects->ip = $request->getClientIp();
-            $this->aspects->route = $request->getRequestUri();
-            $this->aspects->request_body = (string)$request->getContent();
+            $userAgent = $request->getHeader('User-Agent') ?? '';
+            $ipAddress = $request->getClientIp();
+            $route = $request->getRequestUri();
 
-            $this->policy = $this->filterProcessor->process($this->aspects, $this->policy, false);
-            $this->logger->info('request policy', [$this->policy]);
+            $this->title = implode(' ', [$ipAddress, $userAgent, $this->method, $route]);
 
-            if ($this->policy->preventLogRequest()) {
+            $requestBody = (string)$request->getContent();
+
+            $policy = $this->filterProcessor->processRequest($request);
+            $this->logger->info('request policy', [$policy]);
+
+            if ($policy->preventLogRequest()) {
                 return [$request]; // blocked by policy
             }
 
-            if (!in_array($this->aspects->method, $this->config->logResponseMethodBody())) {
-                $this->logger->debug('Request: ' . $this->aspects->title());
+            if (!in_array($this->method, $this->config->logResponseMethodBody())) {
+                $this->logger->debug('Request: ' . $this->title);
                 return [$request];
             }
 
-            $content = $this->bodyFormatter->format($this->aspects->request_body);
+            $content = $this->bodyFormatter->format($requestBody);
             if ($this->isAuthRequest) {
                 $content = "Request body is not logged for authorization requests.";
             }
 
-            if($this->policy->censorRequest) {
+            if($policy->censorRequest) {
                 $content = "(redacted by filter)";
             }
 
@@ -96,7 +96,7 @@ class RestPlugin
                 $payload['HEADERS'] = $this->headersFormatter->format($request->getHeaders());
             }
 
-            $this->logger->debug('Request: ' . $this->aspects->title(), $payload);
+            $this->logger->debug('Request: ' . $this->title, $payload);
 
         } catch (\Exception $exception) {
             $this->logger->critical($exception->getMessage(), ['exception' => $exception]);
@@ -113,36 +113,36 @@ class RestPlugin
                 return;
             }
 
-            if (!in_array($this->aspects->method, $this->config->logResponseMethods())) {
+            if (!in_array($this->method, $this->config->logResponseMethods())) {
                 return;
             }
 
-            $this->aspects->status_code = (string)$response->getStatusCode();
-            $this->aspects->response_body = (string)$response->getBody();
-            $this->policy = $this->filterProcessor->process($this->aspects, $this->policy, true);
-            $this->logger->info('response policy', [$this->policy]);
+            $statusCode = (string)$response->getStatusCode();
+            $responseBody = (string)$response->getBody();
+            $policy = $this->filterProcessor->processResponse($response);
+            $this->logger->info('response policy', [$policy]);
 
             $payload = [
                 'STATUS' => $response->getReasonPhrase(),
-                'CODE' => $this->aspects->status_code,
+                'CODE' => $statusCode,
             ];
 
-            if ($this->policy->preventLogResponse()) {
+            if ($policy->preventLogResponse()) {
                 return;
             }
 
-            if (!in_array($this->aspects->method, $this->config->logResponseMethodBody())) {
-                $this->logger->debug('Response: ' . $this->aspects->title(), $payload);
+            if (!in_array($this->method, $this->config->logResponseMethodBody())) {
+                $this->logger->debug('Response: ' . $this->title, $payload);
                 return;
             }
 
-            $content = $this->bodyFormatter->format($this->aspects->response_body);
+            $content = $this->bodyFormatter->format($responseBody);
 
             if ($this->isAuthRequest) {
                 $content = "Response body is not logged for authorization requests.";
             }
 
-            if($this->policy->censorResponse) {
+            if($policy->censorResponse) {
                 $content = '(redacted by filter)';
             }
 
@@ -153,7 +153,7 @@ class RestPlugin
                 $payload['HEADERS'] = $this->headersFormatter->format($response->getHeaders());
             }
 
-            $this->logger->debug('Response: ' . $this->aspects->title(), $payload);
+            $this->logger->debug('Response: ' . $this->title, $payload);
 
         } catch (\Exception $exception) {
             $this->logger->critical($exception->getMessage(), ['exception' => $exception]);

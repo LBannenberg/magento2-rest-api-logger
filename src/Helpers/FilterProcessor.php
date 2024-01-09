@@ -2,9 +2,15 @@
 
 namespace Corrivate\RestApiLogger\Helpers;
 
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Webapi\Rest\Response;
+
 class FilterProcessor
 {
+    const REQUEST_ASPECTS = ['method', 'route', 'user_agent', 'ip', 'request_body'];
+    const RESPONSE_ASPECTS = ['status_code', 'response_body'];
     private Config $config;
+    private Policy $policy; // The policy persists from request to response; based on the request, we may decide to limit the response
 
 
     public function __construct(
@@ -12,26 +18,35 @@ class FilterProcessor
     )
     {
         $this->config = $config;
+        $this->policy = new Policy();
     }
 
 
-    public function process(Aspects $aspects, Policy $policy, bool $isResponse): Policy
+    public function processRequest(RequestInterface $request): Policy
     {
-        foreach ($this->config->getFilterSettings() as $filterRow) {
-            $aspect = $filterRow['aspect'];
-            if (in_array($aspect, ['response_body', 'status_code']) && !$isResponse) {
+        foreach($this->config->getFilterSettings() as $filterSetting) {
+            if(!in_array($filterSetting['aspect'], self::REQUEST_ASPECTS )) {
                 continue;
             }
-
-            $match = $this->aspectMatchesCondition(
-                $aspects->$aspect,
-                $filterRow['condition'],
-                $filterRow['value']
-            );
-
-            $policy = $this->updatePolicy($match, $filterRow['filter'], $policy);
+            $aspectValue = $this->extractAspectFromRequest($request, $filterSetting['aspect']);
+            $match = $this->aspectMatchesCondition($aspectValue, $filterSetting['condition'], $filterSetting['value']);
+            $this->updatePolicy($match, $filterSetting['filter']);
         }
-        return $policy;
+        return $this->policy;
+    }
+
+
+    public function processResponse(Response $request): Policy
+    {
+        foreach($this->config->getFilterSettings() as $filterSetting) {
+            if(!in_array($filterSetting['aspect'], self::RESPONSE_ASPECTS )) {
+                continue;
+            }
+            $aspectValue = $this->extractAspectFromResponse($request, $filterSetting['aspect']);
+            $match = $this->aspectMatchesCondition($aspectValue, $filterSetting['condition'], $filterSetting['value']);
+            $this->updatePolicy($match, $filterSetting['filter']);
+        }
+        return $this->policy;
     }
 
 
@@ -60,42 +75,42 @@ class FilterProcessor
     }
 
 
-    private function updatePolicy(bool $match, string $filter, Policy $policy): Policy
+    private function updatePolicy(bool $match, string $filter): void
     {
         if ($match) {
             switch ($filter) {
                 case 'forbid_both':
-                    $policy->forbidRequest = true;
-                    $policy->forbidResponse = true;
-                    return $policy;
+                    $this->policy->forbidRequest = true;
+                    $this->policy->forbidResponse = true;
+                    return;
                 case 'forbid_request':
-                    $policy->forbidRequest = true;
-                    return $policy;
+                    $this->policy->forbidRequest = true;
+                    return;
                 case 'forbid_response':
-                    $policy->forbidResponse = true;
-                    return $policy;
+                    $this->policy->forbidResponse = true;
+                    return;
                 case 'censor_both':
-                    $policy->censorRequest = true;
-                    $policy->censorResponse = true;
-                    return $policy;
+                    $this->policy->censorRequest = true;
+                    $this->policy->censorResponse = true;
+                    return;
                 case 'censor_request':
-                    $policy->censorRequest = true;
-                    return $policy;
+                    $this->policy->censorRequest = true;
+                    return;
                 case 'censor_response':
-                    $policy->censorResponse = true;
-                    return $policy;
+                    $this->policy->censorResponse = true;
+                    return;
 
                 // A single allow condition is enough to toggle this to success
                 case 'allow_both':
-                    $policy->allowsRequest = true;
-                    $policy->allowsResponse = true;
-                    return $policy;
+                    $this->policy->allowsRequest = true;
+                    $this->policy->allowsResponse = true;
+                    return;
                 case 'allow_request':
-                    $policy->allowsRequest = true;
-                    return $policy;
+                    $this->policy->allowsRequest = true;
+                    return;
                 case 'allow_response':
-                    $policy->allowsResponse = true;
-                    return $policy;
+                    $this->policy->allowsResponse = true;
+                    return;
             }
         }
 
@@ -103,28 +118,57 @@ class FilterProcessor
         switch ($filter) {
             // A single failed require is enough to toggle this to failure
             case 'require_both':
-                $policy->requiredForRequestFailed = true;
-                $policy->requiredForResponseFailed = true;
-                return $policy;
+                $this->policy->requiredForRequestFailed = true;
+                $this->policy->requiredForResponseFailed = true;
+                return;
             case 'require_request':
-                $policy->requiredForRequestFailed = true;
-                return $policy;
+                $this->policy->requiredForRequestFailed = true;
+                return;
             case 'require_response':
-                $policy->requiredForResponseFailed = true;
-                return $policy;
+                $this->policy->requiredForResponseFailed = true;
+                return;
 
             // If null, set to failed, but don't overwrite success
             case 'allow_both':
-                $policy->allowsRequest ??= false;
-                $policy->allowsResponse ??= false;
-                return $policy;
+                $this->policy->allowsRequest ??= false;
+                $this->policy->allowsResponse ??= false;
+                return;
             case 'allow_request':
-                $policy->allowsRequest ??= false;
-                return $policy;
+                $this->policy->allowsRequest ??= false;
+                return;
             case 'allow_response':
-                $policy->allowsResponse ??= false;
-                return $policy;
+                $this->policy->allowsResponse ??= false;
+                return;
         }
-        return $policy;
+    }
+
+
+    private function extractAspectFromRequest(RequestInterface $request, string $aspect): string
+    {
+        switch($aspect) {
+            case 'method':
+                return strtoupper($request->getMethod());
+            case 'route':
+                return $request->getRequestUri();
+            case 'ip':
+                return $request->getClientIp();
+            case 'user_agent':
+                return $request->getHeader('User-Agent') ?? '';
+            case 'request_body':
+                return (string)$request->getContent();
+        }
+        return '';
+    }
+
+
+    private function extractAspectFromResponse(Response $response, string $aspect): string
+    {
+        switch($aspect) {
+            case 'status_code':
+                return (string)$response->getStatusCode();
+            case 'response_body':
+                return (string)$response->getBody();
+        }
+        return '';
     }
 }
