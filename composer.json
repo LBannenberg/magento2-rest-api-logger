@@ -2,14 +2,15 @@
   "name": "corrivate/magento2-rest-api-logger",
   "description": "Advanced and convenient logging",
   "type": "magento2-module",
-  "license": "proprietary",
+  "version": "0.1.0",
+  "license": "MIT",
   "authors": [
     {
       "name": "Lau Bannenberg",
       "email": "lau.bannenberg@gmail.com"
     }
   ],
-  "minimum-stability": "dev",
+  "minimum-stability": "stable",
   "require": {
     "php": "~7.4.0||~8.1.0||~8.2.0",
     "magento/product-community-edition": "^2.4"
