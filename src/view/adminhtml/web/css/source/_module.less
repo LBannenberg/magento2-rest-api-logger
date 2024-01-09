@@ -1,0 +1,35 @@
+& when (@media-common = true) {
+    #corrivate_rest_api_logger_filters .form-list {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+
+        colgroup.scope-label,
+        colgroup.label {
+            display: none;
+        }
+
+        > tbody > tr {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+
+            .label {
+                width: 100%;
+                text-align: left;
+                padding-top: 0;
+
+                span:before {
+                    right: initial;
+                    left: 0;
+                }
+            }
+
+            .value {
+                width: 100%;
+                margin-top: 25px;
+                padding-top: 0;
+            }
+        }
+    }
+}

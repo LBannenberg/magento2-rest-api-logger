@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <corrivate_rest_api_logger>
+            <general>
+                <enabled>0</enabled>
+            </general>
+            <rest_api_log>
+                <allowed_log_headers>0</allowed_log_headers>
+                <log_get_requests>0</log_get_requests>
+                <log_responses>0</log_responses>
+                <log_get_responses>0</log_get_responses>
+            </rest_api_log>
+        </corrivate_rest_api_logger>
+    </default>
+</config>
