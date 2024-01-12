@@ -1,5 +1,8 @@
 # Corrivate_RestApiLogger
 
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/corrivate/magento2-rest-api-logger?color=blue)](https://packagist.org/packages/corrivate/magento2-rest-api-logger)
+[![MIT Licensed](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
+
 ## Goal
 Get logging visibility on the use of the Magento REST API:
 * Which requests are made, by which IP & user agent

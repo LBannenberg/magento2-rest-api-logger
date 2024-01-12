@@ -12,7 +12,7 @@
     Normal API transactions are logged at debug level,
     but we want to be able to inject problems into the main Magento logging stream too
     -->
-    <type name="Corrivate\RestApiLogger\Logger\Logger" type="Magento\Framework\Logger\Monolog">
+    <type name="Corrivate\RestApiLogger\Logger\Logger">
         <arguments>
             <argument name="name" xsi:type="string">rest_api</argument>
             <argument name="handlers" xsi:type="array">
