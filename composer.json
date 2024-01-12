@@ -24,7 +24,7 @@
       "src/registration.php"
     ],
     "psr-4": {
-      "src\\Corrivate\\RestApiLogger\\": ""
+      "Corrivate\\RestApiLogger\\": "src/"
     }
   }
 }
