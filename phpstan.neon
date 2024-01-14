@@ -7,6 +7,7 @@ parameters:
         # expecting you to run this from project root,
         # epecting the package to located in {project root}/packages/corrivate/magento2-rest-api-logger
         # expecting you to be using composer "path" repository for local development
-        - packages/corrivate/magento2-rest-api-logger/src
+        - src
     ignoreErrors:
+        # Magento makes use of some methods defined on the concrete class, but not the interface
         - '#Call to an undefined method Magento\\Framework\\App\\RequestInterface::#'
