@@ -68,11 +68,10 @@ class RestPlugin
 
             $requestBody = (string)$request->getContent();
 
-            $policy = $this->filterProcessor->processRequest($request);
-            $this->logger->info('request policy', [$policy]);
+            [$preventLogRequestEnvelope, $censorRequestBody] = $this->filterProcessor->processRequest($request);
 
-            if ($policy->preventLogRequest()) {
-                return [$request]; // blocked by policy
+            if ($preventLogRequestEnvelope) {
+                return [$request];
             }
 
             if (!in_array($this->method, $this->config->logResponseMethodBody())) {
@@ -85,7 +84,7 @@ class RestPlugin
                 $content = "Request body is not logged for authorization requests.";
             }
 
-            if($policy->censorRequest) {
+            if($censorRequestBody) {
                 $content = "(redacted by filter)";
             }
 
@@ -119,17 +118,16 @@ class RestPlugin
 
             $statusCode = (string)$response->getStatusCode();
             $responseBody = (string)$response->getBody();
-            $policy = $this->filterProcessor->processResponse($response);
-            $this->logger->info('response policy', [$policy]);
+            [$preventLogResponseEnvelope, $censorResponseBody] = $this->filterProcessor->processResponse($response);
+
+            if ($preventLogResponseEnvelope) {
+                return;
+            }
 
             $payload = [
                 'STATUS' => $response->getReasonPhrase(),
                 'CODE' => $statusCode,
             ];
-
-            if ($policy->preventLogResponse()) {
-                return;
-            }
 
             if (!in_array($this->method, $this->config->logResponseMethodBody())) {
                 $this->logger->debug('Response: ' . $this->title, $payload);
@@ -142,7 +140,7 @@ class RestPlugin
                 $content = "Response body is not logged for authorization requests.";
             }
 
-            if($policy->censorResponse) {
+            if($censorResponseBody) {
                 $content = '(redacted by filter)';
             }
 

@@ -4,54 +4,79 @@ namespace Corrivate\RestApiLogger\Helpers;
 
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
+use Psr\Log\LoggerInterface;
 
 class FilterProcessor
 {
     const REQUEST_ASPECTS = ['method', 'route', 'user_agent', 'ip', 'request_body'];
     const RESPONSE_ASPECTS = ['status_code', 'response_body'];
     private Config $config;
-    private Policy $policy; // The policy persists from request to response; based on the request, we may decide to limit the response
+
+
+    // Internal filter policy state
+    private bool $forbidRequest = false;
+    private bool $forbidResponse = false;
+    private bool $censorRequest = false;
+    private bool $censorResponse = false;
+    private bool $requiredForRequestFailed = false;
+    private bool $requiredForResponseFailed = false;
+    private ?bool $allowsRequest = null;
+    private ?bool $allowsResponse = null;
+    private LoggerInterface $logger;
 
 
     public function __construct(
-        Config $config
+        Config          $config,
+        LoggerInterface $logger
     )
     {
         $this->config = $config;
-        $this->policy = new Policy();
+        $this->logger = $logger;
     }
 
 
-    public function processRequest(RequestInterface $request): Policy
+    /**
+     * @return bool[]
+     */
+    public function processRequest(RequestInterface $request): array
     {
-        foreach($this->config->getFilterSettings() as $filterSetting) {
-            if(!in_array($filterSetting['aspect'], self::REQUEST_ASPECTS )) {
+        foreach ($this->config->getFilterSettings() as $filterSetting) {
+            if (!in_array($filterSetting['aspect'], self::REQUEST_ASPECTS)) {
                 continue;
             }
             $aspectValue = $this->extractAspectFromRequest($request, $filterSetting['aspect']);
             $match = $this->aspectMatchesCondition($aspectValue, $filterSetting['condition'], $filterSetting['value']);
             $this->updatePolicy($match, $filterSetting['filter']);
+//            $this->reportMatch('request', $aspectValue, $filterSetting['condition'], $filterSetting['value'], $match, $filterSetting['filter']);
         }
-        return $this->policy;
+//        $this->reportPolicy('request');
+        return [$this->preventLogRequestEnvelope(), $this->censorRequest];
     }
 
 
-    public function processResponse(Response $request): Policy
+    /**
+     * @return bool[]
+     */
+    public function processResponse(Response $request): array
     {
-        foreach($this->config->getFilterSettings() as $filterSetting) {
-            if(!in_array($filterSetting['aspect'], self::RESPONSE_ASPECTS )) {
+        foreach ($this->config->getFilterSettings() as $filterSetting) {
+            if (!in_array($filterSetting['aspect'], self::RESPONSE_ASPECTS)) {
                 continue;
             }
             $aspectValue = $this->extractAspectFromResponse($request, $filterSetting['aspect']);
             $match = $this->aspectMatchesCondition($aspectValue, $filterSetting['condition'], $filterSetting['value']);
             $this->updatePolicy($match, $filterSetting['filter']);
+//            $this->reportMatch('response', $aspectValue, $filterSetting['condition'], $filterSetting['value'], $match, $filterSetting['filter']);
         }
-        return $this->policy;
+//        $this->reportPolicy('response');
+        return [$this->preventLogResponseEnvelope(), $this->censorResponse];
     }
 
 
     private function aspectMatchesCondition(string $aspectValue, string $condition, string $conditionValue): bool
     {
+        $aspectValue = strtolower($aspectValue);
+        $conditionValue = strtolower($conditionValue);
         switch ($condition) {
             case 'contains':
                 return (strpos($aspectValue, $conditionValue) !== false);
@@ -80,72 +105,74 @@ class FilterProcessor
         if ($match) {
             switch ($filter) {
                 case 'forbid_both':
-                    $this->policy->forbidRequest = true;
-                    $this->policy->forbidResponse = true;
+                    $this->forbidRequest = true;
+                    $this->forbidResponse = true;
                     return;
                 case 'forbid_request':
-                    $this->policy->forbidRequest = true;
+                    $this->forbidRequest = true;
                     return;
                 case 'forbid_response':
-                    $this->policy->forbidResponse = true;
+                    $this->forbidResponse = true;
                     return;
                 case 'censor_both':
-                    $this->policy->censorRequest = true;
-                    $this->policy->censorResponse = true;
+                    $this->censorRequest = true;
+                    $this->censorResponse = true;
                     return;
                 case 'censor_request':
-                    $this->policy->censorRequest = true;
+                    $this->censorRequest = true;
                     return;
                 case 'censor_response':
-                    $this->policy->censorResponse = true;
+                    $this->censorResponse = true;
                     return;
 
                 // A single allow condition is enough to toggle this to success
                 case 'allow_both':
-                    $this->policy->allowsRequest = true;
-                    $this->policy->allowsResponse = true;
+                    $this->allowsRequest = true;
+                    $this->allowsResponse = true;
                     return;
                 case 'allow_request':
-                    $this->policy->allowsRequest = true;
+                    $this->allowsRequest = true;
                     return;
                 case 'allow_response':
-                    $this->policy->allowsResponse = true;
+                    $this->allowsResponse = true;
                     return;
             }
         }
 
 
-        switch ($filter) {
-            // A single failed require is enough to toggle this to failure
-            case 'require_both':
-                $this->policy->requiredForRequestFailed = true;
-                $this->policy->requiredForResponseFailed = true;
-                return;
-            case 'require_request':
-                $this->policy->requiredForRequestFailed = true;
-                return;
-            case 'require_response':
-                $this->policy->requiredForResponseFailed = true;
-                return;
+        if (!$match) {
+            switch ($filter) {
+                // A single failed require is enough to toggle this to failure
+                case 'require_both':
+                    $this->requiredForRequestFailed = true;
+                    $this->requiredForResponseFailed = true;
+                    return;
+                case 'require_request':
+                    $this->requiredForRequestFailed = true;
+                    return;
+                case 'require_response':
+                    $this->requiredForResponseFailed = true;
+                    return;
 
-            // If null, set to failed, but don't overwrite success
-            case 'allow_both':
-                $this->policy->allowsRequest ??= false;
-                $this->policy->allowsResponse ??= false;
-                return;
-            case 'allow_request':
-                $this->policy->allowsRequest ??= false;
-                return;
-            case 'allow_response':
-                $this->policy->allowsResponse ??= false;
-                return;
+                // If null, set to failed, but don't overwrite success
+                case 'allow_both':
+                    $this->allowsRequest ??= false;
+                    $this->allowsResponse ??= false;
+                    return;
+                case 'allow_request':
+                    $this->allowsRequest ??= false;
+                    return;
+                case 'allow_response':
+                    $this->allowsResponse ??= false;
+                    return;
+            }
         }
     }
 
 
     private function extractAspectFromRequest(RequestInterface $request, string $aspect): string
     {
-        switch($aspect) {
+        switch ($aspect) {
             case 'method':
                 return strtoupper($request->getMethod());
             case 'route':
@@ -163,7 +190,7 @@ class FilterProcessor
 
     private function extractAspectFromResponse(Response $response, string $aspect): string
     {
-        switch($aspect) {
+        switch ($aspect) {
             case 'status_code':
                 return (string)$response->getStatusCode();
             case 'response_body':
@@ -171,4 +198,57 @@ class FilterProcessor
         }
         return '';
     }
+
+
+    private function preventLogRequestEnvelope(): bool
+    {
+        return $this->forbidRequest
+            || $this->requiredForRequestFailed
+            || $this->allowsRequest === false;
+    }
+
+
+    private function preventLogResponseEnvelope(): bool
+    {
+        return $this->forbidResponse
+            || $this->requiredForResponseFailed
+            || $this->allowsResponse === false;
+    }
+
+
+    private function reportPolicy(string $stage): void
+    {
+        $this->logger->info("POLICY @ $stage", [
+            '$forbidRequest' => $this->forbidRequest,
+            '$forbidResponse' => $this->forbidResponse,
+            '$censorRequest' => $this->censorRequest,
+            '$censorResponse' => $this->censorResponse,
+            '$requiredForRequestFailed' => $this->requiredForRequestFailed,
+            '$requiredForResponseFailed' => $this->requiredForResponseFailed,
+            '$allowsRequest' => $this->allowsRequest,
+            '$allowsResponse' => $this->allowsResponse,
+            'preventLogRequestEnvelope()' => $this->preventLogRequestEnvelope(),
+            'preventLogResponseEnvelope()' => $this->preventLogResponseEnvelope()
+        ]);
+    }
+
+    private function reportMatch(
+        string $stage,
+        string $aspectValue,
+        string $condition,
+        string $conditionValue,
+        bool   $match,
+        string $filter
+    ): void
+    {
+        $this->logger->info("Matching @ $stage", [
+            '$aspectValue' => strtolower($aspectValue),
+            '$condition' => $condition,
+            '$conditionValue' => strtolower($conditionValue),
+            '$match' => $match,
+            '$filter' => $filter
+        ]);
+    }
+
+
 }
