@@ -1,30 +1,35 @@
 {
-  "name": "corrivate/magento2-rest-api-logger",
-  "description": "Advanced and convenient logging",
-  "type": "magento2-module",
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Lau Bannenberg",
-      "email": "lau.bannenberg@gmail.com"
-    }
-  ],
-  "minimum-stability": "stable",
-  "require": {
-    "php": "~7.4.0||~8.1.0||~8.2.0",
-    "magento/product-community-edition": "^2.4"
-  },
-  "require-dev": {
-      "bitexpert/phpstan-magento": "^0.30.1",
-      "phpstan/extension-installer": "^1.3",
-      "phpstan/phpstan": "^1.9"
-  },
-  "autoload": {
-    "files": [
-      "src/registration.php"
+    "name": "corrivate/magento2-rest-api-logger",
+    "description": "Advanced and convenient logging",
+    "type": "magento2-module",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Lau Bannenberg",
+            "email": "lau.bannenberg@gmail.com"
+        }
     ],
-    "psr-4": {
-      "Corrivate\\RestApiLogger\\": "src/"
+    "minimum-stability": "stable",
+    "require": {
+        "php": "~7.4.0||~8.1.0||~8.2.0",
+        "magento/product-community-edition": "^2.4"
+    },
+    "require-dev": {
+        "bitexpert/phpstan-magento": "^0.30.1",
+        "phpstan/extension-installer": "^1.3",
+        "phpstan/phpstan": "^1.9"
+    },
+    "autoload": {
+        "files": [
+            "src/registration.php"
+        ],
+        "psr-4": {
+            "Corrivate\\RestApiLogger\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Corrivate\\RestApiLogger\\": "tests/"
+        }
     }
-  }
 }
