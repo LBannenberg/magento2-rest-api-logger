@@ -45,8 +45,8 @@ class FilterProcessorTest extends TestCase
         bool  $preventLogRequestEnvelopeScenario,
         bool  $censorRequestBodyScenario,
         array $responseScenario,
-        bool $preventLogResponseBodyScenario,
-        bool $censorResponseBodyScenario
+        bool  $preventLogResponseBodyScenario,
+        bool  $censorResponseBodyScenario
     )
     {
         // ARRANGE
@@ -64,7 +64,7 @@ class FilterProcessorTest extends TestCase
         $this->assertEquals($censorRequestBody, $censorRequestBodyScenario);
 
 
-        if(empty($responseScenario)) {
+        if (empty($responseScenario)) {
             return;
         }
 
@@ -152,9 +152,9 @@ class FilterProcessorTest extends TestCase
         ];
 
         return [
-            'Empty config allows a request' => $baseScenario,
+            'If no filters are configured, the request and response can be logged' => $baseScenario,
 
-            'At least one "allow" condition succeeds' => array_replace([], $baseScenario, [
+            'There are "allow" filters and at least one passes.' => array_replace([], $baseScenario, [
                 'config' => [
                     [
                         'aspect' => 'route',
@@ -172,7 +172,7 @@ class FilterProcessorTest extends TestCase
                 'request' => ['user_agent' => 'Corrivate HQ', 'route' => 'somewhere else entirely']
             ]),
 
-            'No "allow" condition succeeds for request' => array_replace([], $baseScenario, [
+            'There are "allow" filters, and no "allow" filter passes' => array_replace([], $baseScenario, [
                 'config' => [
                     [
                         'aspect' => 'route',
@@ -192,7 +192,7 @@ class FilterProcessorTest extends TestCase
             ]),
 
 
-            'All required values present in request' => array_replace([], $baseScenario, [
+            'All "require" filters pass' => array_replace([], $baseScenario, [
                 'config' => [
                     [
                         'aspect' => 'route',
@@ -210,7 +210,7 @@ class FilterProcessorTest extends TestCase
                 'request' => ['user_agent' => 'Corrivate HQ', 'route' => 'http://mag2.test/rest/V1/store/websites'],
             ]),
 
-            'Not all required values present in request' => array_replace([], $baseScenario, [
+            'Not all "require" filters pass' => array_replace([], $baseScenario, [
                 'config' => [
                     [
                         'aspect' => 'route',
@@ -251,13 +251,45 @@ class FilterProcessorTest extends TestCase
                         'aspect' => 'status_code',
                         'condition' => '<',
                         'value' => '400',
-                        'filter' => 'forbid_response'
+                        'filter' => 'require_response'
                     ]
                 ],
                 'response' => [
                     'status_code' => '500'
                 ],
-                'preventLogResponseEnvelope' => false
+                'preventLogResponseEnvelope' => true
+            ]),
+
+
+            'Comparison is case insensitive' => array_replace([], $baseScenario, [
+                'config' => [
+                    [
+                        'aspect' => 'user_agent',
+                        'condition' => '!=',
+                        'value' => 'Corrivate',
+                        'filter' => 'allow_request'
+                    ]
+                ],
+                'request' => [
+                    'user_agent' => 'corrivate'
+                ],
+                'preventLogRequestEnvelope' => true
+            ]),
+
+
+            'Filter state is retained from request to response' => array_replace([], $baseScenario, [
+                'config' => [
+                    [
+                        'aspect' => 'user_agent',
+                        'condition' => '=',
+                        'value' => 'Corrivate',
+                        'filter' => 'forbid_response'
+                    ]
+                ],
+                'request' => [
+                    'user_agent' => 'corrivate'
+                ],
+                'preventLogResponseEnvelope' => true
             ])
 
         ];
