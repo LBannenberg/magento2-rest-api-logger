@@ -38,7 +38,7 @@ The module will not log the body of incoming auth requests. If headers are logge
 
 ## Credits
 
-![HYPR](src/docs/hypershop_b_v__logo.jpeg)
+![HYPR](docs/hypershop_b_v__logo.jpeg)
 
 This module was originally developed at HYPR. With their permission it has been open-sourced.
 
