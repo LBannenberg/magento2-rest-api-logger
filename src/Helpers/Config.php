@@ -26,9 +26,32 @@ class Config
     }
 
 
+    public function saferMode(): bool
+    {
+        return $this->getBool(self::BASE_PATH . 'general/safer_mode');
+    }
+
+    private function saferModeFilters(): array
+    {
+        return [
+            "safer_mode_request_body_contains_street" => [
+                "aspect" => "request_body",
+                "condition" => "contains",
+                "value" => "street",
+                "filter" => "censor_both"],
+            "safer_mode_response_body_contains_street" => [
+                "aspect" => "response_body",
+                "condition" => "contains",
+                "value" => "street",
+                "filter" => "censor_response"]
+        ];
+    }
+
+
     public function includeHeaders(): bool
     {
-        return $this->getBool(self::BASE_PATH . 'general/include_headers');
+        return $this->getBool(self::BASE_PATH . 'general/include_headers')
+            && !$this->saferMode();
     }
 
 
@@ -79,7 +102,11 @@ class Config
      */
     public function getFilterSettings(): array
     {
-        return $this->getDynamicRows(self::BASE_PATH . 'filters/filter_rows');
+        $filterSettings = $this->getDynamicRows(self::BASE_PATH . 'filters/filter_rows');
+        if ($this->saferMode()) {
+            $filterSettings = array_merge($filterSettings, $this->saferModeFilters());
+        }
+        return $filterSettings;
     }
 
 }

@@ -12,7 +12,10 @@
                 <label>General</label>
 
 
-                <comment><![CDATA[API requests will be logged to <strong>/var/log/rest_api.log</strong>]]></comment>
+                <comment><![CDATA[
+                <p>API requests will be logged to <strong>/var/log/rest_api.log</strong></p>
+                <p style="color:red;">API logging can reveal sensitive data. Use at your own responsibility.</p>
+                ]]></comment>
 
                 <field id="enabled" translate="label" type="select" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Enable</label>
@@ -22,12 +25,35 @@
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 </field>
 
+                <field id="safer_mode" translate="label" type="select" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Safer Mode</label>
+                    <comment>
+                        <![CDATA[
+                        <p>In safer mode, some custom filters are always active to help mask sensitive data:</p>
+                        <ul>
+                            <li>Header logging is disabled.</li>
+                            <li>request body contains "street" =&gt; censor both</li>
+                            <li>response body contains "street" =&gt; censor response</li>
+                        </ul>
+                        <p>Safer mode is not guaranteed to mask all sensitive data. It is intended as a helpful starting point.</p>
+                        ]]>
+                    </comment>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                </field>
+
                 <field id="include_headers" translate="label" type="select" showInDefault="1" showInWebsite="0"
                        showInStore="0">
                     <label>Include headers</label>
-                    <comment><![CDATA[<span style="color:red;">Logging full headers can reveal sensitive information.</span>
-                    (Authorization headers will be hashed.) Activate only for short periods and if strictly necessary.]]></comment>
-                    <source_model>\Corrivate\RestApiLogger\Model\Config\Source\NoYesIUnderstand</source_model>
+                    <comment><![CDATA[
+                    <p><span style="color:red;">Logging full headers can reveal sensitive information.</span> Activate only for short periods and if strictly necessary.</p>
+                    <p>Authorization headers will always be hashed. You can compare a hashed header against the SHA-256 hash of known credentials:</p>
+                    <pre>$hashedCredentials == hash('sha256', $knownCredentials)</pre>
+                    ]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                    <depends>
+                        <field id="corrivate_rest_api_logger/general/safer_mode">0</field>
+                    </depends>
+
                 </field>
 
             </group>
@@ -71,7 +97,13 @@
 
 
             <group id="filters" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Filters</label>
+                <label>Custom Filters</label>
+                <comment>
+                    <![CDATA[
+                    <p>Custom filters allow you to inspect the request and/or response to determine if logging should happen.
+                    It is possible to inspect the request, and decide how to filter the response to <em>that</em> request.
+                    ]]>
+                </comment>
 
 
                 <field id="filter_rows" translate="label" showInDefault="1" showInWebsite="0"
@@ -79,13 +111,29 @@
                     <label>Filters</label>
                     <comment>
                     <![CDATA[
-                    <p>Forbid &gt; Censor &gt; Require &gt; Allow</p>
+                    <h2>Aspects</h2>
                     <ul>
-                        <li>If a <strong>Forbid</strong> action applies, the request/or response will not be logged.</li>
-                        <li>If a <strong>Censor</strong> filter applies, the request/or response payload will be redacted.</li>
-                        <li>All <strong>Require</strong> filters must be satisfied.</li>
-                        <li>If <strong>Allow</strong> filters are specified for requests or responses, <strong>one</strong> of them must be satisfied.</li>
+                        <li><strong>HTTP methods</strong> used in the Magento 2 REST API are: GET, POST, PUT, DELETE.</li>
+                        <li><strong>route</strong> is the full URI, so can be used to filter by domain, store code, <a href="https://developer.adobe.com/commerce/webapi/rest/quick-reference/" target="+"_blank">API endpoint</a> and query string parameters.</li>
+                        <li><strong>HTTP status code</strong> can be used to check the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status" target="_blank">status code</a> of the response.</li>
+                        <li><strong>IP address</strong> allows filtering by client address.</i>
+                        <li><strong>User agent</strong> allows filtering by client address.</i>
+                        <li><strong>request body</strong> searches the contents of the request body (if any). Works best with "contains"/"does not contain" filters.</i>
+                        <li><strong>response body</strong> searches the contents of the response body (if any). Works best with "contains"/"does not contain" filters.</i>
+
                     </ul>
+
+                    <p>Comparisons are case-insensitive.</p>
+                    <br/>
+
+                    <h2>Filters</h2>
+                    <ul>
+                        <li>If <em>any</em> <strong>forbid</strong> filter applies, the whole request/response will not be logged.</li>
+                        <li>If <em>any</em> <strong>censor</strong> filter applies, the request/response body will be redacted.</li>
+                        <li><em>All</em> specified <strong>required</strong> filters must be satisfied, otherwise the request/response will not be logged.</li>
+                        <li>If <strong>allow</strong> filters are specified for requests or responses, <em>one</em> of them must be satisfied.</li>
+                    </ul>
+
                     ]]>
                     </comment>
                     <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\Filters</frontend_model>
