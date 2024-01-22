@@ -5,17 +5,16 @@
 
 ## Goal
 Get logging visibility on the use of the Magento REST API:
-* Which requests are made, by which IP & user agent
-* Response code & status
-* Request & Response payloads
+* Which requests are made, by which IP & user agent, to what endpoints?
+* What is in those requests?
+* What are they getting as responses?
 
-At HYPR we have found this very useful for settling arguments with external integrators: "no, we can see that you sent *this* data".
+At HYPR we have found this very useful for settling arguments with external integrators: "no, we can see that you sent *this* data". 
 
 ## IMPORTANT!
 Improper use of logging can expose security- and personally-sensitive data.
 
-This module is a "power tool" for debugging API issues, it is not entirely possible to prevent this. 
-Being careful what you log is YOUR responsibility. Setting this module to "always on" is not a good idea.
+This module is a "power tool" for debugging API issues, it is not entirely possible to prevent this. Being careful what you log is YOUR responsibility. Setting this module to "always on" is not a good idea.
 
 The module has several filters that allow you to narrow down the scope of what you're logging.
 
@@ -31,6 +30,14 @@ bin/magento setup:upgrade
 
 You can configure the logger in Admin > Stores > Configuration > Services > REST API Logger.
 
+The following configurations are available:
+* Enable/Disable the module
+* Enable/Disable safer mode (which censors some privacy-sensitive payloads)
+* Include request/response headers
+* Which HTTP methods to log
+* Which Magento API endpoints to log, or exclude from logging
+* The ability to construct fine-grained custom filters
+
 ## Security
 
 The module will not log the body of incoming auth requests. If headers are logged, credentials will be hashed.
@@ -42,11 +49,7 @@ The module will not log the body of incoming auth requests. If headers are logge
 
 This module was originally developed at HYPR. With their permission it has been open-sourced.
 
-The design of the module builds on previous loggers, in particular:
-
-* http://www.wishusucess.com/magento-2-api-log-checker/
-* https://blog.syncitgroup.com/advanced-logging-of-the-magento-2-services/
-* https://github.com/vladflonta/magento2-webapi-log
+The design of the module builds on previous loggers, in particular  https://github.com/vladflonta/magento2-webapi-log ; however, that module appears to be no longer actively supported.
 
 
 
