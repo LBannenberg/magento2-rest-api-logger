@@ -5,7 +5,6 @@ namespace Corrivate\RestApiLogger\Plugin\Magento\Webapi\Controller;
 
 use Corrivate\RestApiLogger\Helpers\BodyFormatter;
 use Corrivate\RestApiLogger\Helpers\Config;
-use Corrivate\RestApiLogger\Helpers\Aspects;
 use Corrivate\RestApiLogger\Helpers\FilterProcessor;
 use Corrivate\RestApiLogger\Helpers\HeadersFormatter;
 use Corrivate\RestApiLogger\Helpers\ServiceMatcher;
