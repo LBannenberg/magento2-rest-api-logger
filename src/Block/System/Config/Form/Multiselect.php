@@ -12,7 +12,8 @@ class Multiselect extends \Magento\Config\Block\System\Config\Form\Field
         <script>
             require([
                 'jquery',
-                'chosen'
+                'chosen',
+                'domReady!'
             ], function ($, chosen) {
                 $('#" . $element->getId() . "').chosen({
                     width: '100%',
