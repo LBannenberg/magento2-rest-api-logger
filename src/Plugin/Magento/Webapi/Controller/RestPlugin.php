@@ -58,7 +58,7 @@ class RestPlugin
 
             // Must match at least one included service, if included services configured
             // Must not match excluded services
-            if($this->serviceAllowed = (
+            if(!$this->serviceAllowed = (
                 $this->serviceMatcher->matchIncludedServices($request)
                 && !$this->serviceMatcher->matchExcludedServices($request)
             )) {
@@ -78,7 +78,7 @@ class RestPlugin
             $ipAddress = $request->getClientIp();
             $route = $request->getRequestUri();
 
-            $this->title = implode(' ', [$ipAddress, $userAgent, $this->method, $route]);
+            $this->title = implode(' ', [$ipAddress, $this->method, $route, $userAgent]);
 
             $requestBody = (string)$request->getContent();
 
