@@ -8,10 +8,9 @@
             <tab>service</tab>
             <resource>Corrivate_RestApiLogger::config</resource>
 
+
             <group id="general" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>General</label>
-
-
                 <comment><![CDATA[
                 <p>API requests will be logged to <strong>/var/log/rest_api.log</strong></p>
                 <p style="color:red;">API logging can reveal sensitive data. Use at your own responsibility.</p>
@@ -53,10 +52,31 @@
                     <depends>
                         <field id="corrivate_rest_api_logger/general/safer_mode">0</field>
                     </depends>
+                </field>
+            </group>
 
+
+            <group id="services" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>REST API services</label>
+                <comment><![CDATA[Include or exclude specific API endpoints. These are documented <a href="https://developer.adobe.com/commerce/webapi/rest/quick-reference/" target="_blank">here</a>.]]></comment>
+
+                <field id="include_services" translate="label comment" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Include logging services</label>
+                    <source_model>Corrivate\RestApiLogger\Model\Config\Source\Services</source_model>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
+                    <comment>Include only calls to these services. Leave empty to not apply this filter.</comment>
+                    <can_be_empty>1</can_be_empty>
                 </field>
 
+                <field id="exclude_services" translate="label comment" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Disable logging services</label>
+                    <source_model>Corrivate\RestApiLogger\Model\Config\Source\Services</source_model>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
+                    <comment>Exclude calls to these services from logging. This trumps including a service.</comment>
+                    <can_be_empty>1</can_be_empty>
+                </field>
             </group>
+
 
             <group id="methods" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>HTTP Methods</label>
@@ -65,6 +85,7 @@
                        showInStore="0">
                     <label>Log titles of requests using these methods</label>
                     <source_model>\Corrivate\RestApiLogger\Model\Config\Source\HttpMethods</source_model>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
                     <can_be_empty>1</can_be_empty>
                 </field>
 
@@ -74,6 +95,7 @@
                     <comment>
                         <![CDATA[<span style="color:red;">Logging request bodies can reveal sensitive information.</span>]]></comment>
                     <source_model>\Corrivate\RestApiLogger\Model\Config\Source\HttpMethods</source_model>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
                     <can_be_empty>1</can_be_empty>
                 </field>
 
@@ -81,6 +103,7 @@
                        showInStore="0">
                     <label>Log titles of responses to requests using these methods</label>
                     <source_model>\Corrivate\RestApiLogger\Model\Config\Source\HttpMethods</source_model>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
                     <can_be_empty>1</can_be_empty>
                 </field>
 
@@ -90,6 +113,7 @@
                     <comment>
                         <![CDATA[<span style="color:red;">Logging response bodies can reveal sensitive information.</span>]]></comment>
                     <source_model>\Corrivate\RestApiLogger\Model\Config\Source\HttpMethods</source_model>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
                     <can_be_empty>1</can_be_empty>
                 </field>
 

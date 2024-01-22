@@ -31,6 +31,9 @@ class Config
         return $this->getBool(self::BASE_PATH . 'general/safer_mode');
     }
 
+    /**
+     * @return array<string,array<string, string>>
+     */
     private function saferModeFilters(): array
     {
         return [
@@ -107,6 +110,24 @@ class Config
             $filterSettings = array_merge($filterSettings, $this->saferModeFilters());
         }
         return $filterSettings;
+    }
+
+
+    /**
+     * @return string[]
+     */
+    public function getExcludedServices(): array
+    {
+        return $this->getMultiselectStrings(self::BASE_PATH . 'services/exclude_services');
+    }
+
+
+    /**
+     * @return string[]
+     */
+    public function getIncludedServices(): array
+    {
+        return $this->getMultiselectStrings(self::BASE_PATH . 'services/include_services');
     }
 
 }

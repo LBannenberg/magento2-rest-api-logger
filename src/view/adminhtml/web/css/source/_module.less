@@ -1,4 +1,5 @@
 & when (@media-common = true) {
+    #corrivate_rest_api_logger_services .form-list,
     #corrivate_rest_api_logger_filters .form-list {
         display: flex;
         flex-direction: column;
@@ -34,6 +35,10 @@
             td > ul {
                 margin-left: 20px;
             }
+        }
+
+        & .chosen-container-active > div.chosen-drop { // make sure it expands fully
+            position: static;
         }
     }
 }

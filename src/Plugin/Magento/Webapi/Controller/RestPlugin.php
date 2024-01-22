@@ -8,6 +8,7 @@ use Corrivate\RestApiLogger\Helpers\Config;
 use Corrivate\RestApiLogger\Helpers\Aspects;
 use Corrivate\RestApiLogger\Helpers\FilterProcessor;
 use Corrivate\RestApiLogger\Helpers\HeadersFormatter;
+use Corrivate\RestApiLogger\Helpers\ServiceMatcher;
 use Corrivate\RestApiLogger\Logger\Logger;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
@@ -16,6 +17,7 @@ use Magento\Webapi\Controller\Rest;
 class RestPlugin
 {
     private bool $isAuthRequest = false;
+    private bool $serviceAllowed = true;
     private string $title;
     private string $method;
     private Config $config;
@@ -23,6 +25,7 @@ class RestPlugin
     private HeadersFormatter $headersFormatter;
     private Logger $logger;
     private FilterProcessor $filterProcessor;
+    private ServiceMatcher $serviceMatcher;
 
 
     public function __construct(
@@ -30,7 +33,8 @@ class RestPlugin
         Config           $config,
         BodyFormatter    $bodyFormatter,
         HeadersFormatter $headersFormatter,
-        FilterProcessor  $filterProcessor
+        FilterProcessor  $filterProcessor,
+        ServiceMatcher   $serviceMatcher
     )
     {
         $this->logger = $logger;
@@ -38,6 +42,7 @@ class RestPlugin
         $this->bodyFormatter = $bodyFormatter;
         $this->headersFormatter = $headersFormatter;
         $this->filterProcessor = $filterProcessor;
+        $this->serviceMatcher = $serviceMatcher;
     }
 
     /**
@@ -51,6 +56,16 @@ class RestPlugin
             if (!$this->config->enabled()) {
                 return [$request];
             }
+
+            // Must match at least one included service, if included services configured
+            // Must not match excluded services
+            if($this->serviceAllowed = (
+                $this->serviceMatcher->matchIncludedServices($request)
+                && !$this->serviceMatcher->matchExcludedServices($request)
+            )) {
+                return [$request];
+            }
+
 
             $this->isAuthRequest = $this->isAuthorizationRequest($request->getPathInfo());
 
@@ -84,7 +99,7 @@ class RestPlugin
                 $content = "Request body is not logged for authorization requests.";
             }
 
-            if($censorRequestBody) {
+            if ($censorRequestBody) {
                 $content = "(redacted by filter)";
             }
 
@@ -109,6 +124,10 @@ class RestPlugin
     {
         try {
             if (!$this->config->enabled()) {
+                return;
+            }
+
+            if(!$this->serviceAllowed) {
                 return;
             }
 
@@ -140,7 +159,7 @@ class RestPlugin
                 $content = "Response body is not logged for authorization requests.";
             }
 
-            if($censorResponseBody) {
+            if ($censorResponseBody) {
                 $content = '(redacted by filter)';
             }
 
@@ -163,6 +182,4 @@ class RestPlugin
     {
         return preg_match('/integration\/(admin|customer)\/token/', $path) !== 0;
     }
-
-
 }
