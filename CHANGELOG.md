@@ -1,5 +1,9 @@
 # Changelog
 
+## Unversioned
+### Refactored
+- Moved Config from helpers to models 
+
 ## 0.3.0
 - improve README
 - improve configuration UI
