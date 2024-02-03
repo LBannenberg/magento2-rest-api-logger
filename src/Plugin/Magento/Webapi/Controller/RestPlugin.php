@@ -1,14 +1,13 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Plugin\Magento\Webapi\Controller;
 
-use Corrivate\RestApiLogger\Helpers\BodyFormatter;
-use Corrivate\RestApiLogger\Model\Config;
-use Corrivate\RestApiLogger\Filters\CustomFilter;
-use Corrivate\RestApiLogger\Helpers\HeadersFormatter;
-use Corrivate\RestApiLogger\Filters\ServiceFilter;
+use Corrivate\RestApiLogger\Filter\CustomFilter;
+use Corrivate\RestApiLogger\Filter\ServiceFilter;
+use Corrivate\RestApiLogger\Formatter\BodyFormatter;
+use Corrivate\RestApiLogger\Formatter\HeadersFormatter;
 use Corrivate\RestApiLogger\Logger\Logger;
+use Corrivate\RestApiLogger\Model\Config;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
 use Magento\Webapi\Controller\Rest;

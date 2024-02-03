@@ -1,6 +1,6 @@
 <?php
 
-namespace Corrivate\RestApiLogger\Helpers;
+namespace Corrivate\RestApiLogger\Formatter;
 
 class HeadersFormatter
 {
