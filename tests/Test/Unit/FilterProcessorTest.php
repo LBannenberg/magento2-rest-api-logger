@@ -2,7 +2,7 @@
 
 namespace Corrivate\RestApiLogger\Tests\Unit;
 
-use Corrivate\RestApiLogger\Helpers\Config;
+use Corrivate\RestApiLogger\Model\Config;
 use Corrivate\RestApiLogger\Helpers\FilterProcessor;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Webapi\Rest\Response;

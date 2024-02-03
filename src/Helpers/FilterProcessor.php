@@ -2,6 +2,7 @@
 
 namespace Corrivate\RestApiLogger\Helpers;
 
+use Corrivate\RestApiLogger\Model\Config;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
 use Psr\Log\LoggerInterface;

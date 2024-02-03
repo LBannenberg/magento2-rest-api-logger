@@ -1,6 +1,6 @@
 <?php
 
-namespace Corrivate\RestApiLogger\Helpers;
+namespace Corrivate\RestApiLogger\Model;
 
 use Corrivate\RestApiLogger\Traits\ConfigTrait;
 use Magento\Framework\App\Config\ScopeConfigInterface;
