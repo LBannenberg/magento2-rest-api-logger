@@ -13,7 +13,7 @@ parameters:
         - '#Call to an undefined method Magento\\Framework\\App\\RequestInterface::#'
 
         # These methods are only used for debugging
-        - '#Method Corrivate\\RestApiLogger\\Helpers\\FilterProcessor::reportPolicy\(\) is unused.#'
-        - '#Method Corrivate\\RestApiLogger\\Helpers\\FilterProcessor::reportMatch\(\) is unused.#'
+        - '#Method Corrivate\\RestApiLogger\\Filters\\CustomFilterProcessor::reportPolicy\(\) is unused.#'
+        - '#Method Corrivate\\RestApiLogger\\Filters\\CustomFilterProcessor::reportMatch\(\) is unused.#'
     excludePaths:
         - tests/*

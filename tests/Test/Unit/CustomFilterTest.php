@@ -3,13 +3,13 @@
 namespace Corrivate\RestApiLogger\Tests\Unit;
 
 use Corrivate\RestApiLogger\Model\Config;
-use Corrivate\RestApiLogger\Helpers\FilterProcessor;
+use Corrivate\RestApiLogger\Filter\CustomFilter;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Webapi\Rest\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-class FilterProcessorTest extends TestCase
+class CustomFilterTest extends TestCase
 {
     private $loggerMock;
 
@@ -29,7 +29,7 @@ class FilterProcessorTest extends TestCase
 
     public function testThatFiltersCanBeInstantiated()
     {
-        $filters = new FilterProcessor(
+        $filters = new CustomFilter(
             $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock(),
             $this->loggerMock
         );
@@ -55,7 +55,7 @@ class FilterProcessorTest extends TestCase
 
 
         // ACT
-        $filters = new FilterProcessor($configMock, $this->loggerMock);
+        $filters = new CustomFilter($configMock, $this->loggerMock);
         [$preventLogRequestEnvelope, $censorRequestBody] = $filters->processRequest($requestMock);
 
 
@@ -74,7 +74,7 @@ class FilterProcessorTest extends TestCase
 
 
         // ACT
-        $filters = new FilterProcessor($configMock, $this->loggerMock);
+        $filters = new CustomFilter($configMock, $this->loggerMock);
         [$preventLogResponseBody, $censorResponseBody] = $filters->processResponse($responseMock);
 
 

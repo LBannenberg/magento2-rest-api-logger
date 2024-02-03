@@ -2,7 +2,8 @@
 
 ## Unversioned
 ### Refactored
-- Moved Config from helpers to models 
+- Moved assisting classes into more descriptive namespaces than "helper"
+- Renamed filter classes
 
 ## 0.3.0
 - improve README

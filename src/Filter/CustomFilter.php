@@ -1,13 +1,13 @@
 <?php
 
-namespace Corrivate\RestApiLogger\Helpers;
+namespace Corrivate\RestApiLogger\Filter;
 
 use Corrivate\RestApiLogger\Model\Config;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
 use Psr\Log\LoggerInterface;
 
-class FilterProcessor
+class CustomFilter
 {
     const REQUEST_ASPECTS = ['method', 'route', 'user_agent', 'ip', 'request_body'];
     const RESPONSE_ASPECTS = ['status_code', 'response_body'];

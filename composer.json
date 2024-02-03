@@ -12,6 +12,9 @@
     "minimum-stability": "stable",
     "require": {
         "php": "~7.4.0||~8.1.0||~8.2.0",
+        "ext-json": "*",
+        "ext-pcre": "*",
+        "psr/log": "^1.1",
         "magento/product-community-edition": "^2.4"
     },
     "require-dev": {

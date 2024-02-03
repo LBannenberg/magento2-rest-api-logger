@@ -5,9 +5,9 @@ namespace Corrivate\RestApiLogger\Plugin\Magento\Webapi\Controller;
 
 use Corrivate\RestApiLogger\Helpers\BodyFormatter;
 use Corrivate\RestApiLogger\Model\Config;
-use Corrivate\RestApiLogger\Helpers\FilterProcessor;
+use Corrivate\RestApiLogger\Filters\CustomFilter;
 use Corrivate\RestApiLogger\Helpers\HeadersFormatter;
-use Corrivate\RestApiLogger\Helpers\ServiceMatcher;
+use Corrivate\RestApiLogger\Filters\ServiceFilter;
 use Corrivate\RestApiLogger\Logger\Logger;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
@@ -23,8 +23,8 @@ class RestPlugin
     private BodyFormatter $bodyFormatter;
     private HeadersFormatter $headersFormatter;
     private Logger $logger;
-    private FilterProcessor $filterProcessor;
-    private ServiceMatcher $serviceMatcher;
+    private CustomFilter $filterProcessor;
+    private ServiceFilter $serviceMatcher;
 
 
     public function __construct(
@@ -32,8 +32,8 @@ class RestPlugin
         Config           $config,
         BodyFormatter    $bodyFormatter,
         HeadersFormatter $headersFormatter,
-        FilterProcessor  $filterProcessor,
-        ServiceMatcher   $serviceMatcher
+        CustomFilter     $filterProcessor,
+        ServiceFilter    $serviceMatcher
     )
     {
         $this->logger = $logger;

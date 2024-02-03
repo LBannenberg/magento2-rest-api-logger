@@ -1,11 +1,11 @@
 <?php
 
-namespace Corrivate\RestApiLogger\Helpers;
+namespace Corrivate\RestApiLogger\Filter;
 
 use Corrivate\RestApiLogger\Model\Config;
 use Magento\Framework\App\RequestInterface;
 
-class ServiceMatcher
+class ServiceFilter
 {
     private Config $config;
     public function __construct(
