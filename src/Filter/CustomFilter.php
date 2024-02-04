@@ -11,8 +11,8 @@ use Psr\Log\LoggerInterface;
 
 class CustomFilter
 {
-    const REQUEST_ASPECTS = ['method', 'route', 'user_agent', 'ip', 'request_body'];
-    const RESPONSE_ASPECTS = ['status_code', 'response_body'];
+    private const REQUEST_ASPECTS = ['method', 'route', 'user_agent', 'ip', 'request_body'];
+    private const RESPONSE_ASPECTS = ['status_code', 'response_body'];
     private Config $config;
 
 
@@ -49,7 +49,14 @@ class CustomFilter
             $aspectValue = $this->extractAspectFromRequest($request, $filterSetting['aspect']);
             $match = $this->aspectMatchesCondition($aspectValue, $filterSetting['condition'], $filterSetting['value']);
             $this->updatePolicy($match, $filterSetting['filter']);
-//            $this->reportMatch('request', $aspectValue, $filterSetting['condition'], $filterSetting['value'], $match, $filterSetting['filter']);
+//            $this->reportMatch(
+//                'request',
+//                $aspectValue,
+//                $filterSetting['condition'],
+//                $filterSetting['value'],
+//                $match,
+//                $filterSetting['filter']
+//            );
         }
 //        $this->reportPolicy('request');
         return [$this->preventLogRequestEnvelope(), $this->censorRequest];
@@ -68,7 +75,14 @@ class CustomFilter
             $aspectValue = $this->extractAspectFromResponse($request, $filterSetting['aspect']);
             $match = $this->aspectMatchesCondition($aspectValue, $filterSetting['condition'], $filterSetting['value']);
             $this->updatePolicy($match, $filterSetting['filter']);
-//            $this->reportMatch('response', $aspectValue, $filterSetting['condition'], $filterSetting['value'], $match, $filterSetting['filter']);
+            $this->reportMatch(
+                'response',
+                $aspectValue,
+                $filterSetting['condition'],
+                $filterSetting['value'],
+                $match,
+                $filterSetting['filter']
+            );
         }
 //        $this->reportPolicy('response');
         return [$this->preventLogResponseEnvelope(), $this->censorResponse];

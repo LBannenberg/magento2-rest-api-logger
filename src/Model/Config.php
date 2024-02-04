@@ -11,7 +11,7 @@ class Config
 {
     use ConfigTrait;
 
-    const BASE_PATH = 'corrivate_rest_api_logger/';
+    private const BASE_PATH = 'corrivate_rest_api_logger/';
 
     private ScopeConfigInterface $scopeConfig;
 
