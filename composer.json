@@ -14,8 +14,13 @@
         "php": "~7.4.0||~8.1.0||~8.2.0",
         "ext-json": "*",
         "ext-pcre": "*",
-        "psr/log": "^1.1",
-        "magento/product-community-edition": "^2.4"
+        "magento/framework": "^103.0",
+        "magento/module-backend": "^102.0",
+        "magento/module-config": "^101.2",
+        "magento/module-store": "^101.1",
+        "magento/module-webapi": "^100.4",
+        "monolog/monolog": "^2.6",
+        "psr/log": "^1.1"
     },
     "require-dev": {
         "bitexpert/phpstan-magento": "^0.30.1",
