@@ -75,14 +75,14 @@ class CustomFilter
             $aspectValue = $this->extractAspectFromResponse($request, $filterSetting['aspect']);
             $match = $this->aspectMatchesCondition($aspectValue, $filterSetting['condition'], $filterSetting['value']);
             $this->updatePolicy($match, $filterSetting['filter']);
-            $this->reportMatch(
-                'response',
-                $aspectValue,
-                $filterSetting['condition'],
-                $filterSetting['value'],
-                $match,
-                $filterSetting['filter']
-            );
+//            $this->reportMatch(
+//                'response',
+//                $aspectValue,
+//                $filterSetting['condition'],
+//                $filterSetting['value'],
+//                $match,
+//                $filterSetting['filter']
+//            );
         }
 //        $this->reportPolicy('response'); // phpcs:ignore Squiz.PHP.CommentedOutCode.Found
         return [$this->preventLogResponseEnvelope(), $this->censorResponse];
