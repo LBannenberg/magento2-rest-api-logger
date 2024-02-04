@@ -10,6 +10,7 @@ use Magento\Framework\App\RequestInterface;
 class ServiceFilter
 {
     private Config $config;
+
     public function __construct(
         Config $config
     ) {
@@ -93,7 +94,7 @@ class ServiceFilter
     private function partsMatch(array $pathParts, array $serviceParts, int $pathLength): bool
     {
         for ($i = 0; $i < $pathLength; $i++) {
-            if (is_null($serviceParts[$i])) {
+            if ($serviceParts[$i] === null) {
                 continue; // this part is a variable
             }
 

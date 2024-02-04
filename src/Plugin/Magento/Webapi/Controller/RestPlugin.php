@@ -29,12 +29,12 @@ class RestPlugin
 
 
     public function __construct(
-        Logger $logger,
-        Config $config,
-        BodyFormatter $bodyFormatter,
+        Logger           $logger,
+        Config           $config,
+        BodyFormatter    $bodyFormatter,
         HeadersFormatter $headersFormatter,
-        CustomFilter $filterProcessor,
-        ServiceFilter $serviceMatcher
+        CustomFilter     $filterProcessor,
+        ServiceFilter    $serviceMatcher
     ) {
         $this->logger = $logger;
         $this->config = $config;
@@ -58,12 +58,10 @@ class RestPlugin
 
             // Must match at least one included service, if included services configured
             // Must not match excluded services
-            if (
-                !$this->serviceAllowed = (
-                $this->serviceMatcher->matchIncludedServices($request)
-                && !$this->serviceMatcher->matchExcludedServices($request)
-                )
-            ) {
+            $this->serviceAllowed = $this->serviceMatcher->matchIncludedServices($request)
+                && !$this->serviceMatcher->matchExcludedServices($request);
+
+            if (!$this->serviceAllowed) {
                 return [$request];
             }
 

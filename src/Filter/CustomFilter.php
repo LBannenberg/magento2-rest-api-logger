@@ -58,7 +58,7 @@ class CustomFilter
 //                $filterSetting['filter']
 //            );
         }
-//        $this->reportPolicy('request');
+//        $this->reportPolicy('request'); // phpcs:ignore Squiz.PHP.CommentedOutCode.Found
         return [$this->preventLogRequestEnvelope(), $this->censorRequest];
     }
 
@@ -84,7 +84,7 @@ class CustomFilter
                 $filterSetting['filter']
             );
         }
-//        $this->reportPolicy('response');
+//        $this->reportPolicy('response'); // phpcs:ignore Squiz.PHP.CommentedOutCode.Found
         return [$this->preventLogResponseEnvelope(), $this->censorResponse];
     }
 

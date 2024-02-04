@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Corrivate_Magento2" xsi:noNamespaceSchemaLocation="../../../phpcs.xsd">
+    <description>The Corrivate take on the Magento 2 PHPCS ruleset.</description>
+    <rule ref="PSR12"/>
+
+    <rule ref="Magento2">
+        <!-- Our PHPStan level enforces actual typing -->
+        <!-- We only want to do annotation for array structure and exception throwing info -->
+        <exclude name="Magento2.Annotation.MethodAnnotationStructure.MethodAnnotation"/>
+        <exclude name="Magento2.Annotation.MethodAnnotationStructure.MethodArguments"/>
+        <exclude name="Magento2.Annotation.MethodArguments.ArgumentMissing"/>
+        <exclude name="Magento2.Annotation.MethodArguments.NoCommentBlock"/>
+        <exclude name="Magento2.Annotation.MethodArguments.ParamMissing"/>
+        <exclude name="Magento2.Commenting.ClassPropertyPHPDocFormatting.Missing"/>
+
+        <!-- This gets in the way of readability -->
+        <exclude name="Magento2.Whitespace.MultipleEmptyLines.MultipleEmptyLines"/>
+    </rule>
+</ruleset>

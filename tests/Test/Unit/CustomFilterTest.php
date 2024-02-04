@@ -24,6 +24,7 @@ class CustomFilterTest extends TestCase
 
     public function testThatUnitTestsActuallyRun()
     {
+        // phpcs:ignore Magento2.Security.LanguageConstruct.DirectOutput
         echo "Ensuring unit tests are actually running...\n";
         $this->assertEquals(1, 1); // should pass
     }
