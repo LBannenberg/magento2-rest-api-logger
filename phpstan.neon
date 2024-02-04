@@ -2,6 +2,7 @@ parameters:
     #    phpVersion: 70400 # also supported
     #    phpVersion: 80100 # also supported
     phpVersion: 80200 # also supported
+#    phpVersion: 80300 # also supported
     level: 8
     paths:
         # expecting you to run this from project root,
