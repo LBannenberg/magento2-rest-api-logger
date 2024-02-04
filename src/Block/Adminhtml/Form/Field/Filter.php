@@ -11,7 +11,7 @@ class Filter extends Select
     /**
      * @var array{array{value: string, label: string}}
      */
-    protected $_options = [
+    protected $_options = [ // phpcs:ignore
         ['value' => 'forbid_both', 'label' => 'forbid both'],
         ['value' => 'forbid_request', 'label' => 'forbid request'],
         ['value' => 'forbid_response', 'label' => 'forbid response'],

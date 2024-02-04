@@ -8,7 +8,7 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 
 class Multiselect extends \Magento\Config\Block\System\Config\Form\Field
 {
-    protected function _getElementHtml(AbstractElement $element)
+    protected function _getElementHtml(AbstractElement $element) // phpcs:ignore
     {
         return parent::_getElementHtml($element) . "
         <script>
