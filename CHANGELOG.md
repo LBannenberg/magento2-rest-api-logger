@@ -1,6 +1,6 @@
 # Changelog
 
-## Unversioned
+## 0.4.0
 ### Refactored
 - Moved assisting classes into more descriptive namespaces than "helper"
 - Renamed filter classes
