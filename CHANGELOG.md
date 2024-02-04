@@ -4,6 +4,10 @@
 ### Refactored
 - Moved assisting classes into more descriptive namespaces than "helper"
 - Renamed filter classes
+- Add tentative php8.3 support
+- Use semantic Magento composer module versions
+- List all dependencies in module.xml / composer.json
+- Apply Magento2 coding standard (within reason) 
 
 ## 0.3.0
 - improve README
