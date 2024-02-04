@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Traits;
 
@@ -46,7 +48,7 @@ trait ConfigTrait
             return [];
         }
 
-        if(is_array($value)) { // this happens when you use a config.xml to preload the settings
+        if (is_array($value)) { // this happens when you use a config.xml to preload the settings
             return $value;
         }
 
@@ -57,5 +59,4 @@ trait ConfigTrait
 
         return $result;
     }
-
 }

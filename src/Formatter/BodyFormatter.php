@@ -1,26 +1,26 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Formatter;
 
 class BodyFormatter
 {
-
-
     /**
      * @param string|null $content
      * @return array<mixed>|string
      */
     public function format(?string $content)
     {
-        if(!is_string($content)) {
+        if (!is_string($content)) {
             return '';
         }
 
-        if(!$content = json_decode($content, true)) {
+        if (!$content = json_decode($content, true)) {
             return '';
         }
 
-        if(!is_array($content)) {
+        if (!is_array($content)) {
             return '';
         }
 

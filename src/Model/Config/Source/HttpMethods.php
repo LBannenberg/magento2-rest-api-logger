@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Model\Config\Source;
 
@@ -6,7 +8,6 @@ use Magento\Framework\Webapi\Rest\Request;
 
 class HttpMethods implements \Magento\Framework\Data\OptionSourceInterface
 {
-
     /**
      * @param mixed $isMultiselect
      * @return array<array{'value': string, 'label': string}>

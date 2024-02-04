@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Model;
 
@@ -13,9 +15,7 @@ class Config
 
     private ScopeConfigInterface $scopeConfig;
 
-    public function __construct(
-        ScopeConfigInterface $scopeConfig
-    )
+    public function __construct(ScopeConfigInterface $scopeConfig)
     {
         $this->scopeConfig = $scopeConfig;
     }
@@ -129,5 +129,4 @@ class Config
     {
         return $this->getMultiselectStrings(self::BASE_PATH . 'services/include_services');
     }
-
 }

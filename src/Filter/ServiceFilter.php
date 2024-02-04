@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Filter;
 
@@ -18,7 +20,7 @@ class ServiceFilter
     public function matchIncludedServices(RequestInterface $request): bool
     {
         $services = $this->config->getIncludedServices();
-        if(empty($services)) {
+        if (empty($services)) {
             return true; // if no services are configured, we always accept
         }
         return $this->matchServicesToRequest($request, $this->config->getIncludedServices());
@@ -40,12 +42,12 @@ class ServiceFilter
         $requestParts = $this->extractRequestParts($request);
 
         $pathLength = count($requestParts);
-        foreach($services as $service) {
+        foreach ($services as $service) {
             $serviceParts = $this->extractServiceParts($service);
-            if(count($serviceParts) != $pathLength) {
+            if (count($serviceParts) != $pathLength) {
                 continue;
             }
-            if($this->partsMatch($requestParts, $serviceParts, $pathLength)) {
+            if ($this->partsMatch($requestParts, $serviceParts, $pathLength)) {
                 return true;
             }
         }
@@ -75,7 +77,7 @@ class ServiceFilter
     {
         $parts = explode('/', str_replace('V1/', '', $service));
         $structure = [];
-        foreach($parts as $part) {
+        foreach ($parts as $part) {
             $structure[] = strpos($part, ':') === 0 // variables start with ":"
                 ? null // variable part
                 : $part; // static part
@@ -90,17 +92,15 @@ class ServiceFilter
      */
     private function partsMatch(array $pathParts, array $serviceParts, int $pathLength): bool
     {
-        for($i = 0; $i < $pathLength; $i++) {
-            if(is_null($serviceParts[$i])) {
+        for ($i = 0; $i < $pathLength; $i++) {
+            if (is_null($serviceParts[$i])) {
                 continue; // this part is a variable
             }
 
-            if($pathParts[$i] != $serviceParts[$i]) {
+            if ($pathParts[$i] != $serviceParts[$i]) {
                 return false; // mismatch in this part
             }
         }
         return true; // all parts match
     }
-
-
 }

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Plugin\Magento\Webapi\Controller;
 
@@ -27,14 +29,13 @@ class RestPlugin
 
 
     public function __construct(
-        Logger           $logger,
-        Config           $config,
-        BodyFormatter    $bodyFormatter,
+        Logger $logger,
+        Config $config,
+        BodyFormatter $bodyFormatter,
         HeadersFormatter $headersFormatter,
-        CustomFilter     $filterProcessor,
-        ServiceFilter    $serviceMatcher
-    )
-    {
+        CustomFilter $filterProcessor,
+        ServiceFilter $serviceMatcher
+    ) {
         $this->logger = $logger;
         $this->config = $config;
         $this->bodyFormatter = $bodyFormatter;
@@ -57,10 +58,12 @@ class RestPlugin
 
             // Must match at least one included service, if included services configured
             // Must not match excluded services
-            if(!$this->serviceAllowed = (
+            if (
+                !$this->serviceAllowed = (
                 $this->serviceMatcher->matchIncludedServices($request)
                 && !$this->serviceMatcher->matchExcludedServices($request)
-            )) {
+                )
+            ) {
                 return [$request];
             }
 
@@ -109,7 +112,6 @@ class RestPlugin
             }
 
             $this->logger->debug('Request: ' . $this->title, $payload);
-
         } catch (\Exception $exception) {
             $this->logger->critical($exception->getMessage(), ['exception' => $exception]);
         }
@@ -125,7 +127,7 @@ class RestPlugin
                 return;
             }
 
-            if(!$this->serviceAllowed) {
+            if (!$this->serviceAllowed) {
                 return;
             }
 
@@ -169,7 +171,6 @@ class RestPlugin
             }
 
             $this->logger->debug('Response: ' . $this->title, $payload);
-
         } catch (\Exception $exception) {
             $this->logger->critical($exception->getMessage(), ['exception' => $exception]);
         }

@@ -1,10 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Model\Config\Source;
 
 class NoYesIUnderstand implements \Magento\Framework\Data\OptionSourceInterface
 {
-
     /**
      * @return array<array{'value': int, 'label': string}>
      */

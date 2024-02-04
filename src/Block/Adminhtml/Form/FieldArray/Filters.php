@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray;
 
@@ -8,7 +10,6 @@ use Corrivate\RestApiLogger\Block\Adminhtml\Form\Field\Filter;
 use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
 use Magento\Framework\DataObject;
 use Magento\Framework\View\Element\BlockInterface;
-
 
 class Filters extends AbstractFieldArray
 {
@@ -38,19 +39,19 @@ class Filters extends AbstractFieldArray
         $options = [];
 
         $aspect = $row->getAspect();
-        if($aspect !== null) {
+        if ($aspect !== null) {
             /** @phpstan-ignore-next-line method present on concrete class, not interface :( */
             $options['option_' . $this->getAspectRenderer()->calcOptionHash($aspect)] = 'selected="selected"';
         }
 
         $condition = $row->getCondition();
-        if($condition !== null) {
+        if ($condition !== null) {
             /** @phpstan-ignore-next-line method present on concrete class, not interface :( */
             $options['option_' . $this->getConditionRenderer()->calcOptionHash($condition)] = 'selected="selected"';
         }
 
         $filter = $row->getFilter();
-        if($filter !== null) {
+        if ($filter !== null) {
             /** @phpstan-ignore-next-line method present on concrete class, not interface :( */
             $options['option_' . $this->getFilterRenderer()->calcOptionHash($filter)] = 'selected="selected"';
         }
@@ -61,7 +62,7 @@ class Filters extends AbstractFieldArray
 
     private function getAspectRenderer(): BlockInterface
     {
-        if(!$this->aspectRenderer) {/** @phpstan-ignore-line */
+        if (!$this->aspectRenderer) {/** @phpstan-ignore-line */
             $this->aspectRenderer = $this->getLayout()->createBlock(
                 Aspect::class,
                 '',
@@ -73,7 +74,7 @@ class Filters extends AbstractFieldArray
 
     private function getConditionRenderer(): BlockInterface
     {
-        if(!$this->conditionRender) {/** @phpstan-ignore-line */
+        if (!$this->conditionRender) {/** @phpstan-ignore-line */
             $this->conditionRender = $this->getLayout()->createBlock(
                 Condition::class,
                 '',
@@ -86,7 +87,7 @@ class Filters extends AbstractFieldArray
 
     private function getFilterRenderer(): BlockInterface
     {
-        if(!$this->filterRenderer) {/** @phpstan-ignore-line */
+        if (!$this->filterRenderer) {/** @phpstan-ignore-line */
             $this->filterRenderer = $this->getLayout()->createBlock(
                 Filter::class,
                 '',

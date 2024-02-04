@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Filter;
 
@@ -27,10 +29,9 @@ class CustomFilter
 
 
     public function __construct(
-        Config          $config,
+        Config $config,
         LoggerInterface $logger
-    )
-    {
+    ) {
         $this->config = $config;
         $this->logger = $logger;
     }
@@ -238,10 +239,9 @@ class CustomFilter
         string $aspectValue,
         string $condition,
         string $conditionValue,
-        bool   $match,
+        bool $match,
         string $filter
-    ): void
-    {
+    ): void {
         $this->logger->info("Matching @ $stage", [
             '$aspectValue' => strtolower($aspectValue),
             '$condition' => $condition,
@@ -250,6 +250,4 @@ class CustomFilter
             '$filter' => $filter
         ]);
     }
-
-
 }

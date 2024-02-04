@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Tests\Unit;
 
@@ -42,13 +44,12 @@ class CustomFilterTest extends TestCase
     public function testScenarios(
         array $configScenario,
         array $requestScenario,
-        bool  $preventLogRequestEnvelopeScenario,
-        bool  $censorRequestBodyScenario,
+        bool $preventLogRequestEnvelopeScenario,
+        bool $censorRequestBodyScenario,
         array $responseScenario,
-        bool  $preventLogResponseBodyScenario,
-        bool  $censorResponseBodyScenario
-    )
-    {
+        bool $preventLogResponseBodyScenario,
+        bool $censorResponseBodyScenario
+    ) {
         // ARRANGE
         $configMock = $this->getMockConfig($configScenario);
         $requestMock = $this->getMockRequest($requestScenario);
