@@ -30,7 +30,7 @@ class Filters extends AbstractFieldArray
         $this->addColumn('filter', ['label' => __('Filter'), 'renderer' => $this->getFilterRenderer()]);
 
         $this->_addAfter = false;
-        $this->_addButtonLabel = __('Add Filter');
+        $this->_addButtonLabel = (string)__('Add Filter');
     }
 
     public function _prepareArrayRow(DataObject $row)
