@@ -11,7 +11,7 @@ class Aspect extends Select
     /**
      * @var array{array{value: string, label: string}}
      */
-    protected $_options = [ // phpcs:ignore
+    protected $_options = [ // phpcs:ignore PSR2.Classes.PropertyDeclaration.Underscore
         ['value' => 'method', 'label' => 'HTTP method'],
         ['value' => 'route', 'label' => 'route'],
         ['value' => 'status_code', 'label' => 'HTTP status code'],

@@ -23,7 +23,8 @@ class Filters extends AbstractFieldArray
     private $filterRenderer;
 
 
-    protected function _prepareToRender() // phpcs:ignore
+    // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
+    protected function _prepareToRender()
     {
         $this->addColumn('aspect', ['label' => __('Aspect'), 'renderer' => $this->getAspectRenderer()]);
         $this->addColumn('condition', ['label' => __('Condition'), 'renderer' => $this->getConditionRenderer()]);
@@ -34,7 +35,8 @@ class Filters extends AbstractFieldArray
         $this->_addButtonLabel = (string)__('Add Filter');
     }
 
-    public function _prepareArrayRow(DataObject $row) // phpcs:ignore
+    // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
+    public function _prepareArrayRow(DataObject $row)
     {
         $options = [];
 

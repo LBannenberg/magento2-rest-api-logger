@@ -11,7 +11,7 @@ class Condition extends Select
     /**
      * @var array{array{value: string, label: string}}
      */
-    protected $_options = [ // phpcs:ignore
+    protected $_options = [ // phpcs:ignore PSR2.Classes.PropertyDeclaration.Underscore
         ['value' => 'contains', 'label' => 'contains'],
         ['value' => 'does not contain', 'label' => 'does not contain'],
         ['value' => '=', 'label' => '='],
