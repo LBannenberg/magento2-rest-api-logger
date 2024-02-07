@@ -12,9 +12,5 @@ parameters:
     ignoreErrors:
         # Magento makes use of some methods defined on the concrete class, but not the interface
         - '#Call to an undefined method Magento\\Framework\\App\\RequestInterface::#'
-
-        # These methods are only used for debugging
-        - '#Method Corrivate\\RestApiLogger\\Filter\\CustomFilter::reportPolicy\(\) is unused.#'
-        - '#Method Corrivate\\RestApiLogger\\Filter\\CustomFilter::reportMatch\(\) is unused.#'
     excludePaths:
         - tests/*
