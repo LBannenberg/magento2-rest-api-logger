@@ -7,12 +7,9 @@ namespace Corrivate\RestApiLogger\Filter;
 use Corrivate\RestApiLogger\Model\Config;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
-use Psr\Log\LoggerInterface;
 
-class CustomFilter
+class MainFilter
 {
-    private const REQUEST_ASPECTS = ['method', 'route', 'user_agent', 'ip', 'request_body'];
-    private const RESPONSE_ASPECTS = ['status_code', 'response_body'];
     private Config $config;
 
 
@@ -25,15 +22,12 @@ class CustomFilter
     private bool $requiredForResponseFailed = false;
     private ?bool $allowsRequest = null;
     private ?bool $allowsResponse = null;
-    private LoggerInterface $logger;
 
 
     public function __construct(
-        Config $config,
-        LoggerInterface $logger
+        Config $config
     ) {
         $this->config = $config;
-        $this->logger = $logger;
     }
 
 
@@ -42,24 +36,18 @@ class CustomFilter
      */
     public function processRequest(RequestInterface $request): array
     {
-        foreach ($this->config->getFilterSettings() as $filterSetting) {
-            if (!in_array($filterSetting['aspect'], self::REQUEST_ASPECTS)) {
-                continue;
+        foreach ($this->config->getRequestFilters() as $filter) {
+            if (
+                ($this->forbidRequest || $this->requiredForRequestFailed)
+                && ($this->forbidResponse || $this->requiredForResponseFailed)
+            ) {
+                break; // No need to process further rules
             }
-            $aspectValue = $this->extractAspectFromRequest($request, $filterSetting['aspect']);
-            $match = $this->aspectMatchesCondition($aspectValue, $filterSetting['condition'], $filterSetting['value']);
-            $this->updatePolicy($match, $filterSetting['filter']);
-//            $this->reportMatch(
-//                'request',
-//                $aspectValue,
-//                $filterSetting['condition'],
-//                $filterSetting['value'],
-//                $match,
-//                $filterSetting['filter']
-//            );
+            $aspectValue = $this->extractAspectFromRequest($request, $filter->aspect);
+            $match = $this->aspectMatchesCondition($aspectValue, $filter->condition, $filter->value);
+            $this->updatePolicy($match, $filter->consequence);
         }
-//        $this->reportPolicy('request'); // phpcs:ignore Squiz.PHP.CommentedOutCode.Found
-        return [$this->preventLogRequestEnvelope(), $this->censorRequest];
+        return [$this->shouldLogRequest(), $this->censorRequest];
     }
 
 
@@ -68,24 +56,15 @@ class CustomFilter
      */
     public function processResponse(Response $request): array
     {
-        foreach ($this->config->getFilterSettings() as $filterSetting) {
-            if (!in_array($filterSetting['aspect'], self::RESPONSE_ASPECTS)) {
-                continue;
+        foreach ($this->config->getResponseFilters() as $filter) {
+            if ($this->forbidResponse || $this->requiredForResponseFailed) {
+                break; // No need to process further rules
             }
-            $aspectValue = $this->extractAspectFromResponse($request, $filterSetting['aspect']);
-            $match = $this->aspectMatchesCondition($aspectValue, $filterSetting['condition'], $filterSetting['value']);
-            $this->updatePolicy($match, $filterSetting['filter']);
-//            $this->reportMatch(
-//                'response',
-//                $aspectValue,
-//                $filterSetting['condition'],
-//                $filterSetting['value'],
-//                $match,
-//                $filterSetting['filter']
-//            );
+            $aspectValue = $this->extractAspectFromResponse($request, $filter->aspect);
+            $match = $this->aspectMatchesCondition($aspectValue, $filter->condition, $filter->value);
+            $this->updatePolicy($match, $filter->consequence);
         }
-//        $this->reportPolicy('response'); // phpcs:ignore Squiz.PHP.CommentedOutCode.Found
-        return [$this->preventLogResponseEnvelope(), $this->censorResponse];
+        return [$this->shouldLogResponse(), $this->censorResponse];
     }
 
 
@@ -216,52 +195,18 @@ class CustomFilter
     }
 
 
-    private function preventLogRequestEnvelope(): bool
+    private function shouldLogRequest(): bool
     {
-        return $this->forbidRequest
-            || $this->requiredForRequestFailed
-            || $this->allowsRequest === false;
+        return !$this->forbidRequest
+            && !$this->requiredForRequestFailed
+            && $this->allowsRequest !== false;
     }
 
 
-    private function preventLogResponseEnvelope(): bool
+    private function shouldLogResponse(): bool
     {
-        return $this->forbidResponse
-            || $this->requiredForResponseFailed
-            || $this->allowsResponse === false;
-    }
-
-
-    private function reportPolicy(string $stage): void
-    {
-        $this->logger->info("POLICY @ $stage", [
-            '$forbidRequest' => $this->forbidRequest,
-            '$forbidResponse' => $this->forbidResponse,
-            '$censorRequest' => $this->censorRequest,
-            '$censorResponse' => $this->censorResponse,
-            '$requiredForRequestFailed' => $this->requiredForRequestFailed,
-            '$requiredForResponseFailed' => $this->requiredForResponseFailed,
-            '$allowsRequest' => $this->allowsRequest,
-            '$allowsResponse' => $this->allowsResponse,
-            'preventLogRequestEnvelope()' => $this->preventLogRequestEnvelope(),
-            'preventLogResponseEnvelope()' => $this->preventLogResponseEnvelope()
-        ]);
-    }
-
-    private function reportMatch(
-        string $stage,
-        string $aspectValue,
-        string $condition,
-        string $conditionValue,
-        bool $match,
-        string $filter
-    ): void {
-        $this->logger->info("Matching @ $stage", [
-            '$aspectValue' => strtolower($aspectValue),
-            '$condition' => $condition,
-            '$conditionValue' => strtolower($conditionValue),
-            '$match' => $match,
-            '$filter' => $filter
-        ]);
+        return !$this->forbidResponse
+            && !$this->requiredForResponseFailed
+            && $this->allowsResponse !== false;
     }
 }

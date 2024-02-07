@@ -1,5 +1,9 @@
 # Changelog
 
+## Unversioned
+### Refactored
+- Treat filter configs as objects, to make it easier to merge different configurations in a way the filter processor doesn't need to know about.  
+
 ## 0.4.0
 ### Refactored
 - Moved assisting classes into more descriptive namespaces than "helper"

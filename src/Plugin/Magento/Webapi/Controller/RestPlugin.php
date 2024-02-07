@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Plugin\Magento\Webapi\Controller;
 
-use Corrivate\RestApiLogger\Filter\CustomFilter;
+use Corrivate\RestApiLogger\Filter\MainFilter;
 use Corrivate\RestApiLogger\Filter\ServiceFilter;
 use Corrivate\RestApiLogger\Formatter\BodyFormatter;
 use Corrivate\RestApiLogger\Formatter\HeadersFormatter;
@@ -24,7 +24,7 @@ class RestPlugin
     private BodyFormatter $bodyFormatter;
     private HeadersFormatter $headersFormatter;
     private Logger $logger;
-    private CustomFilter $filterProcessor;
+    private MainFilter $filterProcessor;
     private ServiceFilter $serviceMatcher;
 
 
@@ -33,7 +33,7 @@ class RestPlugin
         Config           $config,
         BodyFormatter    $bodyFormatter,
         HeadersFormatter $headersFormatter,
-        CustomFilter     $filterProcessor,
+        MainFilter       $filterProcessor,
         ServiceFilter    $serviceMatcher
     ) {
         $this->logger = $logger;
@@ -82,9 +82,9 @@ class RestPlugin
 
             $requestBody = (string)$request->getContent();
 
-            [$preventLogRequestEnvelope, $censorRequestBody] = $this->filterProcessor->processRequest($request);
+            [$shouldLogRequest, $shouldCensorRequestBody] = $this->filterProcessor->processRequest($request);
 
-            if ($preventLogRequestEnvelope) {
+            if (!$shouldLogRequest) {
                 return [$request];
             }
 
@@ -98,7 +98,7 @@ class RestPlugin
                 $content = "Request body is not logged for authorization requests.";
             }
 
-            if ($censorRequestBody) {
+            if ($shouldCensorRequestBody) {
                 $content = "(redacted by filter)";
             }
 
@@ -135,9 +135,9 @@ class RestPlugin
 
             $statusCode = (string)$response->getStatusCode();
             $responseBody = (string)$response->getBody();
-            [$preventLogResponseEnvelope, $censorResponseBody] = $this->filterProcessor->processResponse($response);
+            [$shouldLogRequest, $shouldCensorResponseBody] = $this->filterProcessor->processResponse($response);
 
-            if ($preventLogResponseEnvelope) {
+            if (!$shouldLogRequest) {
                 return;
             }
 
@@ -157,7 +157,7 @@ class RestPlugin
                 $content = "Response body is not logged for authorization requests.";
             }
 
-            if ($censorResponseBody) {
+            if ($shouldCensorResponseBody) {
                 $content = '(redacted by filter)';
             }
 

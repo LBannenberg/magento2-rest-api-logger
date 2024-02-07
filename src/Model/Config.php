@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Model;
 
+use Corrivate\RestApiLogger\Model\Config\Filter;
 use Corrivate\RestApiLogger\Traits\ConfigTrait;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 
@@ -12,6 +13,8 @@ class Config
     use ConfigTrait;
 
     private const BASE_PATH = 'corrivate_rest_api_logger/';
+    public const REQUEST_ASPECTS = ['method', 'route', 'user_agent', 'ip', 'request_body'];
+    public const RESPONSE_ASPECTS = ['status_code', 'response_body'];
 
     private ScopeConfigInterface $scopeConfig;
 
@@ -23,6 +26,53 @@ class Config
     public function enabled(): bool
     {
         return $this->getBool(self::BASE_PATH . 'general/enabled');
+    }
+
+
+    /**
+     * @return Filter[]
+     */
+    public function getRequestFilters(): array
+    {
+        return array_filter(
+            $this->getAllFilters(),
+            fn($f) => in_array($f->aspect, self::REQUEST_ASPECTS)
+        );
+    }
+
+
+    /**
+     * @return Filter[]
+     */
+    public function getResponseFilters(): array
+    {
+        return array_filter(
+            $this->getAllFilters(),
+            fn($f) => in_array($f->aspect, self::RESPONSE_ASPECTS)
+        );
+    }
+
+
+    /**
+     * @return Filter[]
+     */
+    private function getAllFilters(): array
+    {
+        $result = [];
+        if ($this->saferMode()) {
+            $result[] = new Filter('request_body', 'contains', 'street', 'censor_both');
+            $result[] = new Filter('response_body', 'contains', 'street', 'censor_response');
+        }
+
+        foreach ($this->getFilterSettings() as $filter) {
+            $new = new Filter($filter['aspect'], $filter['condition'], $filter['value'], $filter['filter']);
+            if (isset($filter['tags']) && $filter['tags']) {
+                $new->tags = array_map(fn($tag) => trim($tag), explode(',', $filter['tags']));
+            }
+            $result[] = $new;
+        }
+
+        return $result;
     }
 
 
