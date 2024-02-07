@@ -15,5 +15,8 @@
 
         <!-- This gets in the way of readability -->
         <exclude name="Magento2.Whitespace.MultipleEmptyLines.MultipleEmptyLines"/>
+
+        <!-- Conflicts with PSR12.ControlStructures.ControlStructureSpacing.FirstExpressionLine -->
+        <exclude name="PSR2.ControlStructures.ControlStructureSpacing.SpacingAfterOpenBrace"/>
     </rule>
 </ruleset>
