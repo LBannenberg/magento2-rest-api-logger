@@ -1,11 +1,14 @@
 # Changelog
 
-## Unversioned
-### Refactored
+## 0.5.0
+Revision of filters
 - Treat filter configs as objects, to make it easier to merge different configurations in a way the filter processor doesn't need to know about.  
+- Move method filters into dynamic rows to enable easier and more granular use
+- Make endpoint filters more customizable
+- Enable adding tags to log entries (useful for annotating IP addresses for example)
 
 ## 0.4.0
-### Refactored
+Focus on code cleanup
 - Moved assisting classes into more descriptive namespaces than "helper"
 - Renamed filter classes
 - Add tentative php8.3 support
