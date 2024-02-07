@@ -30,6 +30,7 @@ class Filters extends AbstractFieldArray
         $this->addColumn('condition', ['label' => __('Condition'), 'renderer' => $this->getConditionRenderer()]);
         $this->addColumn('value', ['label' => __('Value'), 'class' => 'required-entry']);
         $this->addColumn('consequence', ['label' => __('Consequence'), 'renderer' => $this->getConsequenceRenderer()]);
+        $this->addColumn('tags', ['label' => (string)__('Tags')]);
 
         $this->_addAfter = false;
         $this->_addButtonLabel = (string)__('Add Filter');

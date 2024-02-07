@@ -19,7 +19,6 @@ class RestPlugin
     private bool $isAuthRequest = false;
     private bool $serviceAllowed = true;
     private string $title;
-    private string $method;
     private Config $config;
     private BodyFormatter $bodyFormatter;
     private HeadersFormatter $headersFormatter;
@@ -56,6 +55,8 @@ class RestPlugin
                 return [$request];
             }
 
+            $this->isAuthRequest = $this->isAuthorizationRequest($request->getPathInfo());
+
             // Must match at least one included service, if included services configured
             // Must not match excluded services
             $this->serviceAllowed = $this->serviceMatcher->matchIncludedServices($request)
@@ -65,39 +66,35 @@ class RestPlugin
                 return [$request];
             }
 
-
-            $this->isAuthRequest = $this->isAuthorizationRequest($request->getPathInfo());
-
-            $this->method = strtoupper($request->getMethod());
-
-            $userAgent = $request->getHeader('User-Agent') ?? '';
-            $ipAddress = $request->getClientIp();
-            $route = $request->getRequestUri();
-
-            $this->title = implode(' ', [$ipAddress, $this->method, $route, $userAgent]);
-
-            $requestBody = (string)$request->getContent();
-
-            [$shouldLogRequest, $shouldCensorRequestBody] = $this->filterProcessor->processRequest($request);
+            [$shouldLogRequest, $shouldCensorRequestBody, $tags] = $this->filterProcessor->processRequest($request);
 
             if (!$shouldLogRequest) {
                 return [$request];
             }
 
-            $content = $this->bodyFormatter->format($requestBody);
+            $this->title = implode(' ', [
+                $request->getClientIp(),
+                strtoupper($request->getMethod()),
+                $request->getRequestUri(),
+                $request->getHeader('User-Agent') ?? ''
+            ]);
+
             if ($this->isAuthRequest) {
                 $content = "Request body is not logged for authorization requests.";
-            }
-
-            if ($shouldCensorRequestBody) {
+            } elseif ($shouldCensorRequestBody) {
                 $content = "(redacted by filter)";
+            } else {
+                $content = $this->bodyFormatter->format((string)$request->getContent());
             }
 
             $payload = ['BODY' => $content];
 
-            // Prepare header logs, if needed
             if ($this->config->includeHeaders()) {
                 $payload['HEADERS'] = $this->headersFormatter->format($request->getHeaders());
+            }
+
+            if ($tags) {
+                $payload['TAGS'] = $tags;
             }
 
             $this->logger->debug('Request: ' . $this->title, $payload);
@@ -120,33 +117,29 @@ class RestPlugin
                 return;
             }
 
-
-            $statusCode = (string)$response->getStatusCode();
-            $responseBody = (string)$response->getBody();
-            [$shouldLogRequest, $shouldCensorResponseBody] = $this->filterProcessor->processResponse($response);
-
+            [$shouldLogRequest, $shouldCensorResponseBody, $tags] = $this->filterProcessor->processResponse($response);
             if (!$shouldLogRequest) {
                 return;
             }
 
-            $payload = [
-                'STATUS' => $response->getReasonPhrase(),
-                'CODE' => $statusCode,
-            ];
-
-            $content = $this->bodyFormatter->format($responseBody);
-
             if ($this->isAuthRequest) {
                 $content = "Response body is not logged for authorization requests.";
-            }
-
-            if ($shouldCensorResponseBody) {
+            } elseif ($shouldCensorResponseBody) {
                 $content = '(redacted by filter)';
+            } else {
+                $content = $this->bodyFormatter->format((string)$response->getBody());
             }
 
-            $payload['BODY'] = $content;
+            $payload = [
+                'STATUS' => $response->getReasonPhrase(),
+                'CODE' => (string)$response->getStatusCode(),
+                'BODY' => $content
+            ];
 
-            // Prepare header logs
+            if ($tags) {
+                $payload['TAGS'] = $tags;
+            }
+
             if ($this->config->includeHeaders()) {
                 $payload['HEADERS'] = $this->headersFormatter->format($response->getHeaders());
             }

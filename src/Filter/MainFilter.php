@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Corrivate\RestApiLogger\Filter;
 
 use Corrivate\RestApiLogger\Model\Config;
+use Corrivate\RestApiLogger\Model\Config\Filter;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
 
@@ -13,7 +14,7 @@ class MainFilter
     private Config $config;
 
 
-    // Internal filter policy state
+    // Internal filter policy state; carried over from request to response
     private bool $forbidRequest = false;
     private bool $forbidResponse = false;
     private bool $censorRequest = false;
@@ -22,6 +23,11 @@ class MainFilter
     private bool $requiredForResponseFailed = false;
     private ?bool $allowsRequest = null;
     private ?bool $allowsResponse = null;
+
+    /**
+     * @var string[]
+     */
+    private array $tags = [];
 
 
     public function __construct(
@@ -32,7 +38,7 @@ class MainFilter
 
 
     /**
-     * @return bool[]
+     * @return array{bool, bool, string}
      */
     public function processRequest(RequestInterface $request): array
     {
@@ -43,16 +49,16 @@ class MainFilter
             ) {
                 break; // No need to process further rules
             }
-            $aspectValue = $this->extractAspectFromRequest($request, $filter->aspect);
-            $match = $this->aspectMatchesCondition($aspectValue, $filter->condition, $filter->value);
-            $this->updatePolicy($match, $filter->consequence);
+            $aspectValue = $this->extractAspectFromRequest($request, $filter);
+            $match = $this->aspectMatchesCondition($aspectValue, $filter);
+            $this->updatePolicy($match, $filter);
         }
-        return [$this->shouldLogRequest(), $this->censorRequest];
+        return [$this->shouldLogRequest(), $this->censorRequest, implode(', ', $this->tags)];
     }
 
 
     /**
-     * @return bool[]
+     * @return array{bool, bool, string}
      */
     public function processResponse(Response $request): array
     {
@@ -60,19 +66,19 @@ class MainFilter
             if ($this->forbidResponse || $this->requiredForResponseFailed) {
                 break; // No need to process further rules
             }
-            $aspectValue = $this->extractAspectFromResponse($request, $filter->aspect);
-            $match = $this->aspectMatchesCondition($aspectValue, $filter->condition, $filter->value);
-            $this->updatePolicy($match, $filter->consequence);
+            $aspectValue = $this->extractAspectFromResponse($request, $filter);
+            $match = $this->aspectMatchesCondition($aspectValue, $filter);
+            $this->updatePolicy($match, $filter);
         }
-        return [$this->shouldLogResponse(), $this->censorResponse];
+        return [$this->shouldLogResponse(), $this->censorResponse, implode(', ', $this->tags)];
     }
 
 
-    private function aspectMatchesCondition(string $aspectValue, string $condition, string $conditionValue): bool
+    private function aspectMatchesCondition(string $aspectValue, Filter $filter): bool
     {
         $aspectValue = strtolower($aspectValue);
-        $conditionValue = strtolower($conditionValue);
-        switch ($condition) {
+        $conditionValue = strtolower($filter->value);
+        switch ($filter->condition) {
             case 'contains':
                 return (strpos($aspectValue, $conditionValue) !== false);
             case 'does not contain':
@@ -95,10 +101,11 @@ class MainFilter
     }
 
 
-    private function updatePolicy(bool $match, string $filter): void
+    private function updatePolicy(bool $match, Filter $filter): void
     {
         if ($match) {
-            switch ($filter) {
+            $this->tags = array_unique(array_merge($this->tags, $filter->tags));
+            switch ($filter->consequence) {
                 case 'forbid_both':
                     $this->forbidRequest = true;
                     $this->forbidResponse = true;
@@ -136,7 +143,7 @@ class MainFilter
 
 
         if (!$match) {
-            switch ($filter) {
+            switch ($filter->consequence) {
                 // A single failed require is enough to toggle this to failure
                 case 'require_both':
                     $this->requiredForRequestFailed = true;
@@ -165,9 +172,9 @@ class MainFilter
     }
 
 
-    private function extractAspectFromRequest(RequestInterface $request, string $aspect): string
+    private function extractAspectFromRequest(RequestInterface $request, Filter $filter): string
     {
-        switch ($aspect) {
+        switch ($filter->aspect) {
             case 'method':
                 return strtoupper($request->getMethod());
             case 'route':
@@ -183,9 +190,9 @@ class MainFilter
     }
 
 
-    private function extractAspectFromResponse(Response $response, string $aspect): string
+    private function extractAspectFromResponse(Response $response, Filter $filter): string
     {
-        switch ($aspect) {
+        switch ($filter->aspect) {
             case 'status_code':
                 return (string)$response->getStatusCode();
             case 'response_body':
