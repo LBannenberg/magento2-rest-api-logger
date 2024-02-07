@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray;
 
 use Corrivate\RestApiLogger\Block\Adminhtml\Form\Field\Consequence;
-use Corrivate\RestApiLogger\Block\Adminhtml\Form\Field\HttpMethod;
+use Corrivate\RestApiLogger\Block\Adminhtml\Form\Field\Endpoint;
 use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
 use Magento\Framework\DataObject;
 use Magento\Framework\View\Element\BlockInterface;
 
-class HttpMethodFilters extends AbstractFieldArray
+class EndpointFilters extends AbstractFieldArray
 {
     /** @var BlockInterface */
-    private $httpMethodRenderer;
+    private $endpointRenderer;
 
     /** @var BlockInterface */
     private $consequenceRenderer;
@@ -23,7 +23,7 @@ class HttpMethodFilters extends AbstractFieldArray
     protected function _prepareToRender()
     {
         $this->addColumn('aspect', [
-            'label' => (string)__('HTTP Method'), 'renderer' => $this->getHttpMethodRenderer()
+            'label' => (string)__('Endpoint'), 'renderer' => $this->getEndpointRenderer()
         ]);
         $this->addColumn('consequence', [
             'label' => (string)__('Consequence'), 'renderer' => $this->getConsequenceRenderer()
@@ -42,7 +42,7 @@ class HttpMethodFilters extends AbstractFieldArray
         $aspect = $row->getAspect();
         if ($aspect !== null) {
             /** @phpstan-ignore-next-line method present on concrete class, not interface :( */
-            $options['option_' . $this->getHttpMethodRenderer()->calcOptionHash($aspect)] = 'selected="selected"';
+            $options['option_' . $this->getEndpointRenderer()->calcOptionHash($aspect)] = 'selected="selected"';
         }
 
         $consequence = $row->getConsequence();
@@ -55,16 +55,16 @@ class HttpMethodFilters extends AbstractFieldArray
     }
 
 
-    private function getHttpMethodRenderer(): BlockInterface
+    private function getEndpointRenderer(): BlockInterface
     {
-        if (!$this->httpMethodRenderer) { /** @phpstan-ignore-line */
-            $this->httpMethodRenderer = $this->getLayout()->createBlock(
-                HttpMethod::class,
+        if (!$this->endpointRenderer) { /** @phpstan-ignore-line */
+            $this->endpointRenderer = $this->getLayout()->createBlock(
+                Endpoint::class,
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );
         }
-        return $this->httpMethodRenderer;
+        return $this->endpointRenderer;
     }
 
 

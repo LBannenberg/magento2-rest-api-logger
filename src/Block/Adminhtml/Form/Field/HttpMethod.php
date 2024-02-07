@@ -7,7 +7,7 @@ namespace Corrivate\RestApiLogger\Block\Adminhtml\Form\Field;
 use Magento\Framework\View\Element\Html\Select;
 use Magento\Framework\Webapi\Rest\Request;
 
-class HttpMethods extends Select
+class HttpMethod extends Select
 {
     /**
      * @var array{array{value: string, label: string}}

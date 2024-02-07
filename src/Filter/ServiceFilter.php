@@ -34,6 +34,20 @@ class ServiceFilter
     }
 
 
+    public function matchServiceToRequest(RequestInterface $request, string $service): bool
+    {
+        $requestParts = $this->extractRequestParts($request);
+        $pathLength = count($requestParts);
+        $serviceParts = $this->extractServiceParts($service);
+
+        if (count($serviceParts) != $pathLength) {
+            return false;
+        }
+
+        return $this->partsMatch($requestParts, $serviceParts, $pathLength);
+    }
+
+
     /**
      * @param string[] $services
      */

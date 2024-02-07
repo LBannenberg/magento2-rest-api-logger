@@ -73,8 +73,9 @@ class Config
     {
         return array_merge(
             $this->saferModeFilters(),
-            $this->getMethodFilterSettings(),
-            $this->getFilterSettings(),
+            $this->getMethodFilters(),
+            $this->getEndpointFilters(),
+            $this->getCustomFilters(),
         );
     }
 
@@ -93,7 +94,7 @@ class Config
 
 
     /** @return Filter[] */
-    private function getMethodFilterSettings(): array
+    private function getMethodFilters(): array
     {
         $result = [];
         foreach ($this->getDynamicRows(self::BASE_PATH . 'filters/methods') as $filter) {
@@ -109,9 +110,26 @@ class Config
     }
 
 
+    /** @return Filter[] */
+    private function getEndpointFilters(): array
+    {
+        $result = [];
+        foreach ($this->getDynamicRows(self::BASE_PATH . 'filters/endpoints') as $filter) {
+            $result[] = new Filter(
+                'route',
+                'contains',
+                $filter['aspect'],
+                $filter['consequence'],
+                $this->getTagsFromFilter($filter)
+            );
+        }
+        return $result;
+    }
+
+
 
     /** @return Filter[] */
-    public function getFilterSettings(): array
+    private function getCustomFilters(): array
     {
         $result = [];
         foreach ($this->getDynamicRows(self::BASE_PATH . 'filters/filter_rows') as $filter) {

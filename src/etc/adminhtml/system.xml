@@ -88,10 +88,17 @@
                 </field>
 
 
+                <field id="endpoints" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Endpoints</label>
+                    <comment><![CDATA[<a href="https://developer.adobe.com/commerce/webapi/rest/quick-reference/" target="_blank">REST API service endpoints</a>]]></comment>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\EndpointFilters</frontend_model>
+                    <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                </field>
+
 
                 <field id="filter_rows" translate="label" showInDefault="1" showInWebsite="0"
                        showInStore="0">
-                    <label>Filters</label>
+                    <label>Custom Filters</label>
                     <comment>
                     <![CDATA[
                     <h2>Aspects</h2>
@@ -108,13 +115,16 @@
                     <p>Comparisons are case-insensitive.</p>
                     <br/>
 
-                    <h2>Filters</h2>
+                    <h2>Consequences</h2>
                     <ul>
                         <li>If <em>any</em>&nbsp;&nbsp;<strong>forbid</strong> filter applies, the whole request/response will not be logged.</li>
                         <li>If <em>any</em> <strong>censor</strong> filter applies, the request/response body will be redacted.</li>
                         <li><em>All</em> specified <strong>required</strong> filters must be satisfied, otherwise the request/response will not be logged.</li>
                         <li>If <strong>allow</strong> filters are specified for requests or responses, <em>one</em> of them must be satisfied.</li>
                     </ul>
+
+                    <h2>Tags</h2>
+                    <p>You can add tags as comma-separated lists. If the filter matches, the tags will be added to the log entry.</p>
 
                     ]]>
                     </comment>
