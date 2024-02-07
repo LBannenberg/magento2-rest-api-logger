@@ -11,7 +11,7 @@ use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Webapi\Rest\Response;
 use PHPUnit\Framework\TestCase;
 
-class NewFilterTest extends TestCase
+class MainFilterTest extends TestCase
 {
     public function testThatUnitTestsActuallyRun()
     {

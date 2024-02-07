@@ -6,7 +6,7 @@ namespace Corrivate\RestApiLogger\Block\Adminhtml\Form\Field;
 
 use Magento\Framework\View\Element\Html\Select;
 
-class Filter extends Select
+class Consequence extends Select
 {
     /**
      * @var array{array{value: string, label: string}}

@@ -29,6 +29,19 @@ class Config
     }
 
 
+    public function saferMode(): bool
+    {
+        return $this->getBool(self::BASE_PATH . 'general/safer_mode');
+    }
+
+
+    public function includeHeaders(): bool
+    {
+        return $this->getBool(self::BASE_PATH . 'general/include_headers')
+            && !$this->saferMode();
+    }
+
+
     /**
      * @return Filter[]
      */
@@ -58,125 +71,87 @@ class Config
      */
     private function getAllFilters(): array
     {
-        $result = [];
-        if ($this->saferMode()) {
-            $result[] = new Filter('request_body', 'contains', 'street', 'censor_both');
-            $result[] = new Filter('response_body', 'contains', 'street', 'censor_response');
-        }
-
-        foreach ($this->getFilterSettings() as $filter) {
-            $new = new Filter($filter['aspect'], $filter['condition'], $filter['value'], $filter['filter']);
-            if (isset($filter['tags']) && $filter['tags']) {
-                $new->tags = array_map(fn($tag) => trim($tag), explode(',', $filter['tags']));
-            }
-            $result[] = $new;
-        }
-
-        return $result;
+        return array_merge(
+            $this->saferModeFilters(),
+            $this->getMethodFilterSettings(),
+            $this->getFilterSettings(),
+        );
     }
 
 
-    public function saferMode(): bool
-    {
-        return $this->getBool(self::BASE_PATH . 'general/safer_mode');
-    }
-
-    /**
-     * @return array<string,array<string, string>>
-     */
+    /** @return Filter[] */
     private function saferModeFilters(): array
     {
+        if (!$this->saferMode()) {
+            return [];
+        }
         return [
-            "safer_mode_request_body_contains_street" => [
-                "aspect" => "request_body",
-                "condition" => "contains",
-                "value" => "street",
-                "filter" => "censor_both"],
-            "safer_mode_response_body_contains_street" => [
-                "aspect" => "response_body",
-                "condition" => "contains",
-                "value" => "street",
-                "filter" => "censor_response"]
+            new Filter('request_body', 'contains', 'street', 'censor_both'),
+            new Filter('response_body', 'contains', 'street', 'censor_response')
         ];
     }
 
 
-    public function includeHeaders(): bool
+    /** @return Filter[] */
+    private function getMethodFilterSettings(): array
     {
-        return $this->getBool(self::BASE_PATH . 'general/include_headers')
-            && !$this->saferMode();
+        $result = [];
+        foreach ($this->getDynamicRows(self::BASE_PATH . 'filters/methods') as $filter) {
+            $result[] = new Filter(
+                'method',
+                '=',
+                $filter['aspect'],
+                $filter['consequence'],
+                $this->getTagsFromFilter($filter)
+            );
+        }
+        return $result;
     }
 
 
-    /**
-     * @return string[]
-     */
-    public function logRequestMethods(): array
-    {
-        return array_merge(
-            $this->getMultiselectStrings(self::BASE_PATH . 'methods/request_title'),
-            $this->logRequestMethodBody()
-        );
-    }
 
-
-    /**
-     * @return string[]
-     */
-    public function logRequestMethodBody(): array
-    {
-        return $this->getMultiselectStrings(self::BASE_PATH . 'methods/request_body');
-    }
-
-
-    /**
-     * @return string[]
-     */
-    public function logResponseMethods(): array
-    {
-        return array_merge(
-            $this->getMultiselectStrings(self::BASE_PATH . 'methods/response_title'),
-            $this->logResponseMethodBody()
-        );
-    }
-
-
-    /**
-     * @return string[]
-     */
-    public function logResponseMethodBody(): array
-    {
-        return $this->getMultiselectStrings(self::BASE_PATH . 'methods/response_body');
-    }
-
-
-    /**
-     * @return array<string,array<string, string>>
-     */
+    /** @return Filter[] */
     public function getFilterSettings(): array
     {
-        $filterSettings = $this->getDynamicRows(self::BASE_PATH . 'filters/filter_rows');
-        if ($this->saferMode()) {
-            $filterSettings = array_merge($filterSettings, $this->saferModeFilters());
+        $result = [];
+        foreach ($this->getDynamicRows(self::BASE_PATH . 'filters/filter_rows') as $filter) {
+            $result[] = new Filter(
+                $filter['aspect'],
+                $filter['condition'],
+                $filter['value'],
+                $filter['consequence'],
+                $this->getTagsFromFilter($filter)
+            );
         }
-        return $filterSettings;
+        return $result;
     }
 
 
-    /**
-     * @return string[]
-     */
+    /** @return string[] */
     public function getExcludedServices(): array
     {
         return $this->getMultiselectStrings(self::BASE_PATH . 'services/exclude_services');
     }
 
 
-    /**
-     * @return string[]
-     */
+    /** @return string[] */
     public function getIncludedServices(): array
     {
         return $this->getMultiselectStrings(self::BASE_PATH . 'services/include_services');
+    }
+
+
+    /**
+     * @param string[] $filter
+     * @return string[]
+     */
+    private function getTagsFromFilter(array $filter): array
+    {
+        return array_filter(
+            array_map(
+                fn($tag) => trim($tag),
+                explode(',', $filter['tags'] ?? '')
+            )
+        );
     }
 }

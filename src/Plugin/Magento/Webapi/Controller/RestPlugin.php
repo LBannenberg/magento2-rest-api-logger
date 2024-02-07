@@ -70,10 +70,6 @@ class RestPlugin
 
             $this->method = strtoupper($request->getMethod());
 
-            if (!in_array($this->method, $this->config->logRequestMethods())) {
-                return [$request];
-            }
-
             $userAgent = $request->getHeader('User-Agent') ?? '';
             $ipAddress = $request->getClientIp();
             $route = $request->getRequestUri();
@@ -85,11 +81,6 @@ class RestPlugin
             [$shouldLogRequest, $shouldCensorRequestBody] = $this->filterProcessor->processRequest($request);
 
             if (!$shouldLogRequest) {
-                return [$request];
-            }
-
-            if (!in_array($this->method, $this->config->logResponseMethodBody())) {
-                $this->logger->debug('Request: ' . $this->title);
                 return [$request];
             }
 
@@ -129,9 +120,6 @@ class RestPlugin
                 return;
             }
 
-            if (!in_array($this->method, $this->config->logResponseMethods())) {
-                return;
-            }
 
             $statusCode = (string)$response->getStatusCode();
             $responseBody = (string)$response->getBody();
@@ -145,11 +133,6 @@ class RestPlugin
                 'STATUS' => $response->getReasonPhrase(),
                 'CODE' => $statusCode,
             ];
-
-            if (!in_array($this->method, $this->config->logResponseMethodBody())) {
-                $this->logger->debug('Response: ' . $this->title, $payload);
-                return;
-            }
 
             $content = $this->bodyFormatter->format($responseBody);
 

@@ -56,48 +56,6 @@
             </group>
 
 
-            <group id="methods" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>HTTP Methods</label>
-
-                <field id="request_title" translate="label" type="multiselect" showInDefault="1" showInWebsite="0"
-                       showInStore="0">
-                    <label>Log titles of requests using these methods</label>
-                    <source_model>\Corrivate\RestApiLogger\Model\Config\Source\HttpMethods</source_model>
-                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-
-                <field id="request_body" translate="label" type="multiselect" showInDefault="1" showInWebsite="0"
-                       showInStore="0">
-                    <label>Log titles and bodies of requests using these methods</label>
-                    <comment>
-                        <![CDATA[<span style="color:red;">Logging request bodies can reveal sensitive information.</span>]]></comment>
-                    <source_model>\Corrivate\RestApiLogger\Model\Config\Source\HttpMethods</source_model>
-                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-
-                <field id="response_title" translate="label" type="multiselect" showInDefault="1" showInWebsite="0"
-                       showInStore="0">
-                    <label>Log titles of responses to requests using these methods</label>
-                    <source_model>\Corrivate\RestApiLogger\Model\Config\Source\HttpMethods</source_model>
-                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-
-                <field id="response_body" translate="label" type="multiselect" showInDefault="1" showInWebsite="0"
-                       showInStore="0">
-                    <label>Log titles and response bodies to requests using these methods</label>
-                    <comment>
-                        <![CDATA[<span style="color:red;">Logging response bodies can reveal sensitive information.</span>]]></comment>
-                    <source_model>\Corrivate\RestApiLogger\Model\Config\Source\HttpMethods</source_model>
-                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-
-            </group>
-
-
             <group id="services" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
                 <label>REST API services</label>
                 <comment><![CDATA[Include or exclude specific API endpoints. These are documented <a href="https://developer.adobe.com/commerce/webapi/rest/quick-reference/" target="_blank">here</a>.]]></comment>
@@ -121,13 +79,14 @@
 
 
             <group id="filters" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Custom Filters</label>
-                <comment>
-                    <![CDATA[
-                    <p>Custom filters allow you to inspect the request and/or response to determine if logging should happen.
-                    It is possible to inspect the request, and decide how to filter the response to <em>that</em> request.
-                    ]]>
-                </comment>
+                <label>Filters</label>
+
+                <field id="methods" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>HTTP Request Methods</label>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\HttpMethodFilters</frontend_model>
+                    <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                </field>
+
 
 
                 <field id="filter_rows" translate="label" showInDefault="1" showInWebsite="0"
@@ -137,7 +96,6 @@
                     <![CDATA[
                     <h2>Aspects</h2>
                     <ul>
-                        <li><strong>HTTP methods</strong> used in the Magento 2 REST API are: GET, POST, PUT, DELETE.</li>
                         <li><strong>route</strong> is the full URI, so can be used to filter by domain, store code, <a href="https://developer.adobe.com/commerce/webapi/rest/quick-reference/" target="+"_blank">API endpoint</a> and query string parameters.</li>
                         <li><strong>HTTP status code</strong> can be used to check the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status" target="_blank">status code</a> of the response.</li>
                         <li><strong>IP address</strong> allows filtering by client address.</i>
