@@ -42,7 +42,7 @@
 
                 <field id="include_headers" translate="label" type="select" showInDefault="1" showInWebsite="0"
                        showInStore="0">
-                    <label>Include request/response headers</label>
+                    <label>Include headers in logs</label>
                     <comment><![CDATA[
                     <p><span style="color:red;">Logging full headers can reveal sensitive information.</span> Activate only for short periods and if strictly necessary.</p>
                     <p>Authorization headers will always be hashed. You can compare a hashed header against the SHA-256 hash of known credentials:</p>
