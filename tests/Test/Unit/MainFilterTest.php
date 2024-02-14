@@ -203,6 +203,20 @@ class MainFilterTest extends TestCase
                     ->request(['user_agent' => 'corrivate'])
                     ->logResponse(false),
 
+            'Endpoints filters without variables are matched' =>
+                (new Scenario())
+                    ->config([new Filter('endpoint', '=', 'orders/{id}/comments', 'censor_both')])
+                    ->request(['route' => 'http://mag2.test/rest/V1/orders'])
+                    ->censorRequestBody(true)
+                    ->censorResponseBody(true),
+
+            'Endpoints with variables in them are matched in their generic form' =>
+                (new Scenario())
+                    ->config([new Filter('endpoint', '=', 'orders/{id}/comments', 'censor_both')])
+                    ->request(['route' => 'http://mag2.test/rest/V1/orders/1/comments'])
+                    ->censorRequestBody(true)
+                    ->censorResponseBody(true)
+
         ];
 
         // PHPUnit requires each case to be an array of (1) input arguments
