@@ -34,30 +34,20 @@ class ServiceFilter
     }
 
 
-    public function matchServiceToRequest(RequestInterface $request, string $service): bool
-    {
-        $requestParts = $this->extractRequestParts($request);
-        $pathLength = count($requestParts);
-        $serviceParts = $this->extractServiceParts($service);
-
-        if (count($serviceParts) != $pathLength) {
-            return false;
-        }
-
-        return $this->partsMatch($requestParts, $serviceParts, $pathLength);
-    }
-
-
     /**
      * @param string[] $services
      */
     private function matchServicesToRequest(RequestInterface $request, array $services): bool
     {
-
+        $requestMethod = $request->getMethod();
         $requestParts = $this->extractRequestParts($request);
-
         $pathLength = count($requestParts);
+
         foreach ($services as $service) {
+            if (strpos(strtolower($service), strtolower($requestMethod)) === false) {
+                continue; // Service doesn't match request method
+            }
+
             $serviceParts = $this->extractServiceParts($service);
             if (count($serviceParts) != $pathLength) {
                 continue;
@@ -90,7 +80,11 @@ class ServiceFilter
      */
     private function extractServiceParts(string $service): array
     {
-        $parts = explode('/', str_replace('V1/', '', $service));
+        $service = explode(' ', $service);
+        $method = $service[0];
+        $path = $service[1];
+
+        $parts = explode('/', str_replace('V1/', '', $path));
         $structure = [];
         foreach ($parts as $part) {
             $structure[] = strpos($part, ':') === 0 // variables start with ":"

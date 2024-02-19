@@ -22,7 +22,7 @@ class EndpointFilters extends AbstractFieldArray
     // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
     protected function _prepareToRender()
     {
-        $this->addColumn('aspect', [
+        $this->addColumn('value', [
             'label' => (string)__('Endpoint'), 'renderer' => $this->getEndpointRenderer()
         ]);
         $this->addColumn('consequence', [

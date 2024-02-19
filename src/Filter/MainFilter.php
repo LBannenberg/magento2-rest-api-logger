@@ -8,6 +8,7 @@ use Corrivate\RestApiLogger\Model\Config;
 use Corrivate\RestApiLogger\Model\Config\Filter;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
+use Psr\Log\LoggerInterface;
 
 class MainFilter
 {
@@ -28,12 +29,15 @@ class MainFilter
      * @var string[]
      */
     private array $tags = [];
+    private LoggerInterface $logger;
 
 
     public function __construct(
-        Config $config
+        Config $config,
+        LoggerInterface $logger
     ) {
         $this->config = $config;
+        $this->logger = $logger;
     }
 
 
@@ -76,6 +80,10 @@ class MainFilter
 
     private function aspectMatchesCondition(string $aspectValue, Filter $filter): bool
     {
+        if ($filter->aspect == 'endpoint') {
+            return $this->matchPathToService($aspectValue, $filter);
+        }
+
         $aspectValue = strtolower($aspectValue);
         $conditionValue = strtolower($filter->value);
         switch ($filter->condition) {
@@ -185,6 +193,9 @@ class MainFilter
                 return $request->getHeader('User-Agent') ?? '';
             case 'request_body':
                 return (string)$request->getContent();
+            case 'endpoint':
+                $uri = \Laminas\Uri\UriFactory::factory($request->getRequestUri());
+                return $request->getMethod() . ' ' . ($uri->getPath() ?? '');
         }
         return '';
     }
@@ -215,5 +226,56 @@ class MainFilter
         return !$this->forbidResponse
             && !$this->requiredForResponseFailed
             && $this->allowsResponse !== false;
+    }
+
+    private function matchPathToService(string $path, Filter $filter): bool
+    {
+
+        $observed = explode(' ', $path);
+        $configured = explode(' ', $filter->value);
+
+        $observedMethod = $observed[0];
+        $configuredMethod = $configured[0];
+        if (strtolower($observedMethod) != strtolower($configuredMethod)) {
+            return false;
+        }
+
+        $observedService = explode('/V1/', $observed[1])[1];
+        $observedServiceParts = explode('/', $observedService);
+
+        $configuredService = explode('/', str_replace('V1/', '', $configured[1]));
+        $configuredServiceParts = [];
+        foreach ($configuredService as $part) {
+            $configuredServiceParts[] = strpos($part, ':') === 0 // variables start with ":"
+                ? null // variable part
+                : $part; // static part
+        }
+
+        $countConfiguredServiceParts = count($configuredServiceParts);
+
+        if (count($observedServiceParts) != $countConfiguredServiceParts) {
+            return false;
+        }
+
+        $match = true;
+        for ($i = 0; $i < $countConfiguredServiceParts; $i++) {
+            if ($configuredServiceParts[$i] === null) {
+                continue; // placeholder vs actual variable
+            }
+            if ($configuredServiceParts[$i] != $observedServiceParts[$i]) {
+                $match = false;
+                break;
+            }
+        }
+
+        if ($filter->condition == '=') {
+            return $match;
+        }
+        if ($filter->condition == '!=') {
+            return !$match;
+        }
+
+        $this->logger->warning("Unsupported REST API logger filter configuration", ['filter' => $filter]);
+        return false;
     }
 }

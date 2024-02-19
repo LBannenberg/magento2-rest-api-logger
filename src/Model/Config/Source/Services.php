@@ -39,7 +39,11 @@ class Services implements \Magento\Framework\Data\OptionSourceInterface
             $options = $this->config->getServices()[\Magento\Webapi\Model\Config\Converter::KEY_ROUTES];
             foreach ($options as $route => $methods) {
                 $group = trim(ucwords(preg_replace('/^\/([^\/]+)\/([^\/]+).*/', '$1 $2', $route)));
-                $this->options[$group][(string)$route] = trim($route, '/');
+
+                foreach ($methods as $method => $details) {
+                    $service = $method . ' ' . trim($route, '/');
+                    $this->options[$group][$service] = $service;
+                }
             }
         }
 

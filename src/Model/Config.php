@@ -13,7 +13,7 @@ class Config
     use ConfigTrait;
 
     private const BASE_PATH = 'corrivate_rest_api_logger/';
-    public const REQUEST_ASPECTS = ['method', 'route', 'user_agent', 'ip', 'request_body'];
+    public const REQUEST_ASPECTS = ['method', 'route', 'user_agent', 'ip', 'request_body', 'endpoint'];
     public const RESPONSE_ASPECTS = ['status_code', 'response_body'];
 
     private ScopeConfigInterface $scopeConfig;
@@ -101,7 +101,7 @@ class Config
             $result[] = new Filter(
                 'method',
                 '=',
-                $filter['aspect'],
+                $filter['value'],
                 $filter['consequence'],
                 $this->getTagsFromFilter($filter)
             );
@@ -116,9 +116,9 @@ class Config
         $result = [];
         foreach ($this->getDynamicRows(self::BASE_PATH . 'filters/endpoints') as $filter) {
             $result[] = new Filter(
-                'route',
-                'contains',
-                $filter['aspect'],
+                'endpoint',
+                '=',
+                $filter['value'],
                 $filter['consequence'],
                 $this->getTagsFromFilter($filter)
             );

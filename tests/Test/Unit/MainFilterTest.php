@@ -10,6 +10,7 @@ use Corrivate\RestApiLogger\Filter\MainFilter;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Webapi\Rest\Response;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 class MainFilterTest extends TestCase
 {
@@ -24,7 +25,8 @@ class MainFilterTest extends TestCase
     public function testThatFiltersCanBeInstantiated()
     {
         $filters = new MainFilter(
-            $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock()
+            $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock(),
+            $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock(),
         );
     }
 
@@ -36,9 +38,10 @@ class MainFilterTest extends TestCase
     {
         // ARRANGE
         $configMock = $this->getMockConfig($scenario->config);
+        $loggerMock = $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock();
         $requestMock = $this->getMockRequest($scenario->request);
         $responseMock = $this->getMockResponse($scenario->response);
-        $filters = new MainFilter($configMock);
+        $filters = new MainFilter($configMock, $loggerMock);
 
         // ACT
         [$shouldLogRequest, $shouldCensorRequestBody] = $filters->processRequest($requestMock);
@@ -205,17 +208,32 @@ class MainFilterTest extends TestCase
 
             'Endpoints filters without variables are matched' =>
                 (new Scenario())
-                    ->config([new Filter('endpoint', '=', 'orders/{id}/comments', 'censor_both')])
-                    ->request(['route' => 'http://mag2.test/rest/V1/orders'])
+                    ->config([new Filter('endpoint', '=', 'GET orders', 'censor_both')])
+                    ->request(['route' => 'http://mag2.test/rest/V1/orders', 'method' => 'get'])
                     ->censorRequestBody(true)
                     ->censorResponseBody(true),
 
             'Endpoints with variables in them are matched in their generic form' =>
                 (new Scenario())
-                    ->config([new Filter('endpoint', '=', 'orders/{id}/comments', 'censor_both')])
-                    ->request(['route' => 'http://mag2.test/rest/V1/orders/1/comments'])
+                    ->config([new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both')])
+                    ->request(['route' => 'http://mag2.test/rest/V1/orders/1/comments', 'method' => 'get'])
                     ->censorRequestBody(true)
-                    ->censorResponseBody(true)
+                    ->censorResponseBody(true),
+
+            'Query parameters are ignored when matching a request with a service' =>
+                (new Scenario())
+                    ->config([new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both')])
+                    ->request(['route' => 'http://mag2.test/rest/V1/orders/1/comments?query=true', 'method' => 'get'])
+                    ->censorRequestBody(true)
+                    ->censorResponseBody(true),
+
+            'Endpoint filters distinguish different methods on the same endpoint' =>
+                (new Scenario())
+                    ->config([new Filter('endpoint', '=', 'GET customerGroups/:id', 'censor_both')])
+                    ->request(['route' => 'http://mag2.test/rest/V1/customerGroups/1', 'method' => 'put'])
+                    ->censorRequestBody(false)
+                    ->censorResponseBody(false)
+
 
         ];
 
