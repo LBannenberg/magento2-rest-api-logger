@@ -190,7 +190,7 @@ class MainFilter
             case 'ip':
                 return $request->getClientIp();
             case 'user_agent':
-                return $request->getHeader('User-Agent') ?? '';
+                return (string)$request->getHeader('User-Agent') ?? '';
             case 'request_body':
                 return (string)$request->getContent();
             case 'endpoint':
