@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.7.0
+- Configuration revised
+  - Should now be in stable form for the long term
+  - Splits the filters into Request and Response tab
+  - Removes the separate endpoint tab
+  - Removes chosen.js which was flaky
+  - Splits filters into separate tables that can take advantage of more specific source models
+- Endpoint filters improved
+  - Handle confusion when there's overlap between routes for endpoints, such as `GET /cmsPage/search` and `GET /cmsPage/:pageId`
+  - Some efficiencies for handling larger amounts of endpoint filters, needed for safer mode
+- Support for logging XML content type
+
+## 0.6.1
+- Fixed a TypeError
+
+## 0.6.0
+Endpoint improvements
+- Make them work
+- Also distinguish by HTTP method
+
 ## 0.5.0
 Revision of filters
 - Treat filter configs as objects, to make it easier to merge different configurations in a way the filter processor doesn't need to know about.  
