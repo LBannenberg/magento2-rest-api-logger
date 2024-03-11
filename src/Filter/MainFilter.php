@@ -29,15 +29,15 @@ class MainFilter
      * @var string[]
      */
     private array $tags = [];
-    private LoggerInterface $logger;
+    private EndpointFilter $endpointFilter;
 
 
     public function __construct(
         Config $config,
-        LoggerInterface $logger
+        EndpointFilter $endpointFilter
     ) {
         $this->config = $config;
-        $this->logger = $logger;
+        $this->endpointFilter = $endpointFilter;
     }
 
 
@@ -81,7 +81,7 @@ class MainFilter
     private function aspectMatchesCondition(string $aspectValue, Filter $filter): bool
     {
         if ($filter->aspect == 'endpoint') {
-            return $this->matchPathToService($aspectValue, $filter);
+            return $this->endpointFilter->matchPathToService($aspectValue, $filter);
         }
 
         $aspectValue = strtolower($aspectValue);
@@ -226,56 +226,5 @@ class MainFilter
         return !$this->forbidResponse
             && !$this->requiredForResponseFailed
             && $this->allowsResponse !== false;
-    }
-
-    private function matchPathToService(string $path, Filter $filter): bool
-    {
-
-        $observed = explode(' ', $path);
-        $configured = explode(' ', $filter->value);
-
-        $observedMethod = $observed[0];
-        $configuredMethod = $configured[0];
-        if (strtolower($observedMethod) != strtolower($configuredMethod)) {
-            return false;
-        }
-
-        $observedService = explode('/V1/', $observed[1])[1];
-        $observedServiceParts = explode('/', $observedService);
-
-        $configuredService = explode('/', str_replace('V1/', '', $configured[1]));
-        $configuredServiceParts = [];
-        foreach ($configuredService as $part) {
-            $configuredServiceParts[] = strpos($part, ':') === 0 // variables start with ":"
-                ? null // variable part
-                : $part; // static part
-        }
-
-        $countConfiguredServiceParts = count($configuredServiceParts);
-
-        if (count($observedServiceParts) != $countConfiguredServiceParts) {
-            return false;
-        }
-
-        $match = true;
-        for ($i = 0; $i < $countConfiguredServiceParts; $i++) {
-            if ($configuredServiceParts[$i] === null) {
-                continue; // placeholder vs actual variable
-            }
-            if ($configuredServiceParts[$i] != $observedServiceParts[$i]) {
-                $match = false;
-                break;
-            }
-        }
-
-        if ($filter->condition == '=') {
-            return $match;
-        }
-        if ($filter->condition == '!=') {
-            return !$match;
-        }
-
-        $this->logger->warning("Unsupported REST API logger filter configuration", ['filter' => $filter]);
-        return false;
     }
 }
