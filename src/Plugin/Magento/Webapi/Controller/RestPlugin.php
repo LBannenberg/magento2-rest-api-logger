@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Corrivate\RestApiLogger\Plugin\Magento\Webapi\Controller;
 
 use Corrivate\RestApiLogger\Filter\MainFilter;
-use Corrivate\RestApiLogger\Filter\ServiceFilter;
 use Corrivate\RestApiLogger\Formatter\BodyFormatter;
 use Corrivate\RestApiLogger\Formatter\HeadersFormatter;
 use Corrivate\RestApiLogger\Logger\Logger;
@@ -17,14 +16,12 @@ use Magento\Webapi\Controller\Rest;
 class RestPlugin
 {
     private bool $isAuthRequest = false;
-    private bool $serviceAllowed = true;
     private string $title;
     private Config $config;
     private BodyFormatter $bodyFormatter;
     private HeadersFormatter $headersFormatter;
     private Logger $logger;
     private MainFilter $filterProcessor;
-    private ServiceFilter $serviceMatcher;
 
 
     public function __construct(
@@ -32,15 +29,13 @@ class RestPlugin
         Config           $config,
         BodyFormatter    $bodyFormatter,
         HeadersFormatter $headersFormatter,
-        MainFilter       $filterProcessor,
-        ServiceFilter    $serviceMatcher
+        MainFilter       $filterProcessor
     ) {
         $this->logger = $logger;
         $this->config = $config;
         $this->bodyFormatter = $bodyFormatter;
         $this->headersFormatter = $headersFormatter;
         $this->filterProcessor = $filterProcessor;
-        $this->serviceMatcher = $serviceMatcher;
     }
 
     /**
@@ -57,14 +52,14 @@ class RestPlugin
 
             $this->isAuthRequest = $this->isAuthorizationRequest($request->getPathInfo());
 
-            // Must match at least one included service, if included services configured
-            // Must not match excluded services
-            $this->serviceAllowed = $this->serviceMatcher->matchIncludedServices($request)
-                && !$this->serviceMatcher->matchExcludedServices($request);
-
-            if (!$this->serviceAllowed) {
-                return [$request];
-            }
+            // We need to capture title before deciding if we want to log the request,
+            // in case the filters permit logging a response but not the request.
+            $this->title = implode(' ', [
+                $request->getClientIp(),
+                strtoupper($request->getMethod()),
+                $request->getRequestUri(),
+                $request->getHeader('User-Agent') ?? ''
+            ]);
 
             [$shouldLogRequest, $shouldCensorRequestBody, $tags] = $this->filterProcessor->processRequest($request);
 
@@ -72,12 +67,7 @@ class RestPlugin
                 return [$request];
             }
 
-            $this->title = implode(' ', [
-                $request->getClientIp(),
-                strtoupper($request->getMethod()),
-                $request->getRequestUri(),
-                $request->getHeader('User-Agent') ?? ''
-            ]);
+
 
             if ($this->isAuthRequest) {
                 $content = "Request body is not logged for authorization requests.";
@@ -113,9 +103,6 @@ class RestPlugin
                 return;
             }
 
-            if (!$this->serviceAllowed) {
-                return;
-            }
 
             [$shouldLogRequest, $shouldCensorResponseBody, $tags] = $this->filterProcessor->processResponse($response);
             if (!$shouldLogRequest) {

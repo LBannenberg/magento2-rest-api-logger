@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray;
 
-use Corrivate\RestApiLogger\Block\Adminhtml\Form\Field\Consequence;
+use Corrivate\RestApiLogger\Block\Adminhtml\Form\Field\RequestConsequence;
 use Corrivate\RestApiLogger\Block\Adminhtml\Form\Field\HttpMethod;
 use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
 use Magento\Framework\DataObject;
@@ -39,10 +39,10 @@ class HttpMethodFilters extends AbstractFieldArray
     {
         $options = [];
 
-        $aspect = $row->getAspect();
-        if ($aspect !== null) {
+        $value = $row->getValue();
+        if ($value !== null) {
             /** @phpstan-ignore-next-line method present on concrete class, not interface :( */
-            $options['option_' . $this->getHttpMethodRenderer()->calcOptionHash($aspect)] = 'selected="selected"';
+            $options['option_' . $this->getHttpMethodRenderer()->calcOptionHash($value)] = 'selected="selected"';
         }
 
         $consequence = $row->getConsequence();
@@ -72,7 +72,7 @@ class HttpMethodFilters extends AbstractFieldArray
     {
         if (!$this->consequenceRenderer) { /** @phpstan-ignore-line */
             $this->consequenceRenderer = $this->getLayout()->createBlock(
-                Consequence::class,
+                RequestConsequence::class,
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );

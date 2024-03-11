@@ -13,9 +13,6 @@ class Config
     use ConfigTrait;
 
     private const BASE_PATH = 'corrivate_rest_api_logger/';
-    public const REQUEST_ASPECTS = ['method', 'route', 'user_agent', 'ip', 'request_body', 'endpoint'];
-    public const RESPONSE_ASPECTS = ['status_code', 'response_body'];
-
     private ScopeConfigInterface $scopeConfig;
 
     public function __construct(ScopeConfigInterface $scopeConfig)
@@ -29,16 +26,39 @@ class Config
     }
 
 
-    public function saferMode(): bool
+    public function saferModeEnabled(): bool
     {
         return $this->getBool(self::BASE_PATH . 'general/safer_mode');
+    }
+
+
+    /** @return Filter[] */
+    private function saferModeRequestFilters(): array
+    {
+        if (!$this->saferModeEnabled()) {
+            return [];
+        }
+        return [
+            new Filter('request_body', 'contains', 'street', 'censor_both')
+        ];
+    }
+
+    /** @return Filter[] */
+    private function saferModeResponseFilters(): array
+    {
+        if (!$this->saferModeEnabled()) {
+            return [];
+        }
+        return [
+            new Filter('response_body', 'contains', 'street', 'censor_response')
+        ];
     }
 
 
     public function includeHeaders(): bool
     {
         return $this->getBool(self::BASE_PATH . 'general/include_headers')
-            && !$this->saferMode();
+            && !$this->saferModeEnabled();
     }
 
 
@@ -47,9 +67,14 @@ class Config
      */
     public function getRequestFilters(): array
     {
-        return array_filter(
-            $this->getAllFilters(),
-            fn($f) => in_array($f->aspect, self::REQUEST_ASPECTS)
+        return array_merge(
+            $this->saferModeRequestFilters(),
+            $this->mapRowsToFilters('request_filters/method', 'method'),
+            $this->mapRowsToFilters('request_filters/endpoint', 'endpoint'),
+            $this->mapRowsToFilters('request_filters/route', 'route'),
+            $this->mapRowsToFilters('request_filters/ip_address', 'ip_address'),
+            $this->mapRowsToFilters('request_filters/user_agent', 'user_agent'),
+            $this->mapRowsToFilters('request_filters/request_body', 'request_body')
         );
     }
 
@@ -59,103 +84,28 @@ class Config
      */
     public function getResponseFilters(): array
     {
-        return array_filter(
-            $this->getAllFilters(),
-            fn($f) => in_array($f->aspect, self::RESPONSE_ASPECTS)
-        );
-    }
-
-
-    /**
-     * @return Filter[]
-     */
-    private function getAllFilters(): array
-    {
         return array_merge(
-            $this->saferModeFilters(),
-            $this->getMethodFilters(),
-            $this->getEndpointFilters(),
-            $this->getCustomFilters(),
+            $this->saferModeResponseFilters(),
+            $this->mapRowsToFilters('response_filters/status_code', 'status_code'),
+            $this->mapRowsToFilters('response_filters/response_body', 'response_body')
         );
     }
 
 
     /** @return Filter[] */
-    private function saferModeFilters(): array
+    private function mapRowsToFilters(string $path, string $aspect): array
     {
-        if (!$this->saferMode()) {
-            return [];
-        }
-        return [
-            new Filter('request_body', 'contains', 'street', 'censor_both'),
-            new Filter('response_body', 'contains', 'street', 'censor_response')
-        ];
-    }
-
-
-    /** @return Filter[] */
-    private function getMethodFilters(): array
-    {
-        $result = [];
-        foreach ($this->getDynamicRows(self::BASE_PATH . 'filters/methods') as $filter) {
-            $result[] = new Filter(
-                'method',
-                '=',
-                $filter['value'],
-                $filter['consequence'],
-                $this->getTagsFromFilter($filter)
-            );
-        }
-        return $result;
-    }
-
-
-    /** @return Filter[] */
-    private function getEndpointFilters(): array
-    {
-        $result = [];
-        foreach ($this->getDynamicRows(self::BASE_PATH . 'filters/endpoints') as $filter) {
-            $result[] = new Filter(
-                'endpoint',
-                '=',
-                $filter['value'],
-                $filter['consequence'],
-                $this->getTagsFromFilter($filter)
-            );
-        }
-        return $result;
-    }
-
-
-
-    /** @return Filter[] */
-    private function getCustomFilters(): array
-    {
-        $result = [];
-        foreach ($this->getDynamicRows(self::BASE_PATH . 'filters/filter_rows') as $filter) {
-            $result[] = new Filter(
-                $filter['aspect'],
-                $filter['condition'],
-                $filter['value'],
-                $filter['consequence'],
-                $this->getTagsFromFilter($filter)
-            );
-        }
-        return $result;
-    }
-
-
-    /** @return string[] */
-    public function getExcludedServices(): array
-    {
-        return $this->getMultiselectStrings(self::BASE_PATH . 'services/exclude_services');
-    }
-
-
-    /** @return string[] */
-    public function getIncludedServices(): array
-    {
-        return $this->getMultiselectStrings(self::BASE_PATH . 'services/include_services');
+        $rows = $this->getDynamicRows(self::BASE_PATH . $path);
+        return array_map(
+            fn($row) => new Filter(
+                $aspect,
+                $row['condition'] ?? '=',
+                $row['value'],
+                $row['consequence'],
+                $this->unpackTagsFromRow($row)
+            ),
+            $rows
+        );
     }
 
 
@@ -163,7 +113,7 @@ class Config
      * @param string[] $filter
      * @return string[]
      */
-    private function getTagsFromFilter(array $filter): array
+    private function unpackTagsFromRow(array $filter): array
     {
         return array_filter(
             array_map(

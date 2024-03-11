@@ -56,39 +56,17 @@
             </group>
 
 
-            <group id="services" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>REST API services</label>
-                <comment><![CDATA[Include or exclude specific API endpoints. These are documented <a href="https://developer.adobe.com/commerce/webapi/rest/quick-reference/" target="_blank">here</a>.]]></comment>
+            <group id="request_filters" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Request Filters</label>
 
-                <field id="include_services" translate="label comment" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Include logging services</label>
-                    <source_model>Corrivate\RestApiLogger\Model\Config\Source\Services</source_model>
-                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
-                    <comment>Include only calls to these services. Leave empty to not apply this filter.</comment>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-
-                <field id="exclude_services" translate="label comment" type="multiselect" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Disable logging services</label>
-                    <source_model>Corrivate\RestApiLogger\Model\Config\Source\Services</source_model>
-                    <frontend_model>\Corrivate\RestApiLogger\Block\System\Config\Form\Multiselect</frontend_model>
-                    <comment>Exclude calls to these services from logging. This trumps including a service.</comment>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-            </group>
-
-
-            <group id="filters" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Filters</label>
-
-                <field id="methods" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="method" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>HTTP Request Methods</label>
                     <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\HttpMethodFilters</frontend_model>
                     <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
                 </field>
 
 
-                <field id="endpoints" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
+                <field id="endpoint" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Endpoints</label>
                     <comment><![CDATA[<a href="https://developer.adobe.com/commerce/webapi/rest/quick-reference/" target="_blank">REST API service endpoints</a>]]></comment>
                     <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\EndpointFilters</frontend_model>
@@ -96,42 +74,63 @@
                 </field>
 
 
-                <field id="filter_rows" translate="label" showInDefault="1" showInWebsite="0"
-                       showInStore="0">
-                    <label>Custom Filters</label>
-                    <comment>
-                    <![CDATA[
-                    <h2>Aspects</h2>
-                    <ul>
-                        <li><strong>route</strong> is the full URI, so can be used to filter by domain, store code, <a href="https://developer.adobe.com/commerce/webapi/rest/quick-reference/" target="+"_blank">API endpoint</a> and query string parameters.</li>
-                        <li><strong>HTTP status code</strong> can be used to check the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status" target="_blank">status code</a> of the response.</li>
-                        <li><strong>IP address</strong> allows filtering by client address.</i>
-                        <li><strong>User agent</strong> allows filtering by client address.</i>
-                        <li><strong>request body</strong> searches the contents of the request body (if any). Works best with "contains"/"does not contain" filters.</i>
-                        <li><strong>response body</strong> searches the contents of the response body (if any). Works best with "contains"/"does not contain" filters.</i>
-
-                    </ul>
-
-                    <p>Comparisons are case-insensitive.</p>
-                    <br/>
-
-                    <h2>Consequences</h2>
-                    <ul>
-                        <li>If <em>any</em>&nbsp;&nbsp;<strong>forbid</strong> filter applies, the whole request/response will not be logged.</li>
-                        <li>If <em>any</em> <strong>censor</strong> filter applies, the request/response body will be redacted.</li>
-                        <li><em>All</em> specified <strong>required</strong> filters must be satisfied, otherwise the request/response will not be logged.</li>
-                        <li>If <strong>allow</strong> filters are specified for requests or responses, <em>one</em> of them must be satisfied.</li>
-                    </ul>
-
-                    <h2>Tags</h2>
-                    <p>You can add tags as comma-separated lists. If the filter matches, the tags will be added to the log entry.</p>
-
-                    ]]>
-                    </comment>
-                    <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\Filters</frontend_model>
+                <field id="route" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Route</label>
+                    <comment>Full URI, including domain, store code and query string.</comment>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\RouteFilters</frontend_model>
                     <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
                 </field>
+
+
+                <field id="ip_address" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>IP Address</label>
+                    <comment>The IP address where the request came from</comment>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\IpAddressFilters</frontend_model>
+                    <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                </field>
+
+
+                <field id="user_agent" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>User Agent</label>
+                    <comment>The user agent sending the request</comment>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\UserAgentFilters</frontend_model>
+                    <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                </field>
+
+
+                <field id="request_body" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Request Body</label>
+                    <comment>Comparisons are case-insensitive.</comment>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\RequestBodyFilters</frontend_model>
+                    <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                </field>
+
             </group>
+
+
+            <group id="response_filters" translate="label,comment" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Response Filters</label>
+
+                <field id="status_code" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Status Code</label>
+                    <comment>
+                        <![CDATA[
+                        HTTP status code</strong> can be used to check the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status" target="_blank">status code</a> of the response.
+                        ]]>
+                    </comment>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\HttpStatusFilters</frontend_model>
+                    <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                </field>
+
+                <field id="response_body" translate="label" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Response Body Text</label>
+                    <comment>Comparisons are case-insensitive.</comment>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray\ResponseBodyFilters</frontend_model>
+                    <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                </field>
+
+            </group>
+
         </section>
     </system>
 </config>

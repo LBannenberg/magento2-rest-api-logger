@@ -187,10 +187,10 @@ class MainFilter
                 return strtoupper($request->getMethod());
             case 'route':
                 return $request->getRequestUri();
-            case 'ip':
+            case 'ip_address':
                 return $request->getClientIp();
             case 'user_agent':
-                return (string)$request->getHeader('User-Agent') ?? '';
+                return (string)$request->getHeader('User-Agent');
             case 'request_body':
                 return (string)$request->getContent();
             case 'endpoint':

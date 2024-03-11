@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Corrivate\RestApiLogger\Block\Adminhtml\Form\FieldArray;
 
 use Corrivate\RestApiLogger\Block\Adminhtml\Form\Field\RequestConsequence;
-use Corrivate\RestApiLogger\Block\Adminhtml\Form\Field\Endpoint;
+use Corrivate\RestApiLogger\Block\Adminhtml\Form\Field\ContainsCondition;
 use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
 use Magento\Framework\DataObject;
 use Magento\Framework\View\Element\BlockInterface;
 
-class EndpointFilters extends AbstractFieldArray
+class RequestBodyFilters extends AbstractFieldArray
 {
     /** @var BlockInterface */
-    private $endpointRenderer;
+    private $conditionRender;
 
     /** @var BlockInterface */
     private $consequenceRenderer;
@@ -22,9 +22,10 @@ class EndpointFilters extends AbstractFieldArray
     // phpcs:ignore PSR2.Methods.MethodDeclaration.Underscore
     protected function _prepareToRender()
     {
-        $this->addColumn('value', [
-            'label' => (string)__('Endpoint'), 'renderer' => $this->getEndpointRenderer()
-        ]);
+        $this->addColumn('condition', ['label' => __('Condition'), 'renderer' => $this->getConditionRenderer()]);
+
+        $this->addColumn('value', ['label' => (string)__('Text in request body')]);
+
         $this->addColumn('consequence', [
             'label' => (string)__('Consequence'), 'renderer' => $this->getConsequenceRenderer()
         ]);
@@ -39,10 +40,10 @@ class EndpointFilters extends AbstractFieldArray
     {
         $options = [];
 
-        $value = $row->getValue();
-        if ($value !== null) {
+        $condition = $row->getCondition();
+        if ($condition !== null) {
             /** @phpstan-ignore-next-line method present on concrete class, not interface :( */
-            $options['option_' . $this->getEndpointRenderer()->calcOptionHash($value)] = 'selected="selected"';
+            $options['option_' . $this->getConditionRenderer()->calcOptionHash($condition)] = 'selected="selected"';
         }
 
         $consequence = $row->getConsequence();
@@ -55,16 +56,16 @@ class EndpointFilters extends AbstractFieldArray
     }
 
 
-    private function getEndpointRenderer(): BlockInterface
+    private function getConditionRenderer(): BlockInterface
     {
-        if (!$this->endpointRenderer) { /** @phpstan-ignore-line */
-            $this->endpointRenderer = $this->getLayout()->createBlock(
-                Endpoint::class,
+        if (!$this->conditionRender) {/** @phpstan-ignore-line */
+            $this->conditionRender = $this->getLayout()->createBlock(
+                ContainsCondition::class,
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );
         }
-        return $this->endpointRenderer;
+        return $this->conditionRender;
     }
 
 

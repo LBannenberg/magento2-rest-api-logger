@@ -14,14 +14,6 @@ use Psr\Log\LoggerInterface;
 
 class MainFilterTest extends TestCase
 {
-    public function testThatUnitTestsActuallyRun()
-    {
-        // phpcs:ignore Magento2.Security.LanguageConstruct.DirectOutput
-        echo "Ensuring unit tests are actually running...\n";
-        $this->assertEquals(1, 1); // should pass
-    }
-
-
     public function testThatFiltersCanBeInstantiated()
     {
         $filters = new MainFilter(
@@ -37,10 +29,16 @@ class MainFilterTest extends TestCase
     public function testScenarios(Scenario $scenario)
     {
         // ARRANGE
-        $configMock = $this->getMockConfig($scenario->config);
+        $configMock = $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock();
+        $configMock->method('getRequestFilters')->willReturn($scenario->requestFilters);
+        $configMock->method('getResponseFilters')->willReturn($scenario->responseFilters);
+
         $loggerMock = $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock();
-        $requestMock = $this->getMockRequest($scenario->request);
-        $responseMock = $this->getMockResponse($scenario->response);
+
+        $requestMock = $this->buildMockRequest($scenario->request);
+
+        $responseMock = $this->buildMockResponse($scenario->response);
+
         $filters = new MainFilter($configMock, $loggerMock);
 
         // ACT
@@ -48,47 +46,25 @@ class MainFilterTest extends TestCase
         [$shouldLogResponse, $shouldCensorResponseBody] = $filters->processResponse($responseMock);
 
         // ASSERT
-        if ($scenario->logRequest !== null) {
-            $this->assertEquals($scenario->logRequest, $shouldLogRequest);
+        if ($scenario->shouldLogRequest !== null) {
+            $this->assertSame($scenario->shouldLogRequest, $shouldLogRequest);
         }
 
-        if ($scenario->censorRequestBody !== null) {
-            $this->assertEquals($scenario->censorRequestBody, $shouldCensorRequestBody);
+        if ($scenario->shouldCensorRequestBody !== null) {
+            $this->assertSame($scenario->shouldCensorRequestBody, $shouldCensorRequestBody);
         }
 
-        if ($scenario->logResponse !== null) {
-            $this->assertEquals($scenario->logResponse, $shouldLogResponse);
+        if ($scenario->shouldLogResponse !== null) {
+            $this->assertSame($scenario->shouldLogResponse, $shouldLogResponse);
         }
 
-        if ($scenario->censorResponseBody !== null) {
-            $this->assertEquals($scenario->censorResponseBody, $shouldCensorResponseBody,);
+        if ($scenario->shouldCensorResponseBody !== null) {
+            $this->assertSame($scenario->shouldCensorResponseBody, $shouldCensorResponseBody,);
         }
     }
 
 
-    private function getMockConfig(array $filterSettings): Config
-    {
-        $mock = $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock();
-
-        $mock->method('getRequestFilters')->willReturn(
-            array_filter(
-                $filterSettings,
-                fn($f) => in_array($f->aspect, Config::REQUEST_ASPECTS)
-            )
-        );
-
-        $mock->method('getResponseFilters')->willReturn(
-            array_filter(
-                $filterSettings,
-                fn($f) => in_array($f->aspect, Config::RESPONSE_ASPECTS)
-            )
-        );
-
-        return $mock;
-    }
-
-
-    private function getMockRequest(array $aspects): Request
+    private function buildMockRequest(array $aspects): Request
     {
         $mock = $this->getMockBuilder(Request::class)->disableOriginalConstructor()->getMock();
 
@@ -116,7 +92,7 @@ class MainFilterTest extends TestCase
     }
 
 
-    private function getMockResponse(array $aspects): Response
+    private function buildMockResponse(array $aspects): Response
     {
         $mock = $this->getMockBuilder(Response::class)->disableOriginalConstructor()->getMock();
 
@@ -140,99 +116,109 @@ class MainFilterTest extends TestCase
         $scenarios = [
             'If no filters are configured, all signs point to Yes' =>
                 (new Scenario())
-                    ->config([])
-                    ->logRequest(true)
-                    ->censorRequestBody(false)
-                    ->logResponse(true)
-                    ->censorResponseBody(false),
+                    ->requestFiltersConfig([])
+                    ->responseFiltersConfig([])
+                    ->shouldLogRequest(true)
+                    ->shouldCensorRequestBody(false)
+                    ->shouldLogResponse(true)
+                    ->shouldCensorResponseBody(false),
 
             'There are "allow" filters and at least one passes.' =>
                 (new Scenario())
-                    ->config([
+                    ->requestFiltersConfig([
                         new Filter('user_agent', 'contains', 'corrivate', 'allow_request'),
                         new Filter('route', 'contains', 'store', 'allow_request')
                     ])
                     ->request(['user_agent' => 'Rival Corp HQ', 'route' => 'http://mag2.test/rest/V1/store/websites'])
-                    ->logRequest(true),
+                    ->shouldLogRequest(true),
 
             'There are "allow" filters, and no "allow" filter passes' =>
                 (new Scenario())
-                    ->config([
+                    ->requestFiltersConfig([
                         new Filter('route', 'contains', 'store', 'allow_request'),
                         new Filter('user_agent', 'contains', 'corrivate', 'allow_request')
                     ])
                     ->request(['user_agent' => 'Rival Corp HQ', 'route' => 'somewhere else entirely'])
-                    ->logRequest(false),
+                    ->shouldLogRequest(false),
 
             'All "require" filters pass' =>
                 (new Scenario())
-                    ->config([
+                    ->requestFiltersConfig([
                         new Filter('route', 'contains', 'store', 'require_request'),
                         new Filter('user_agent', 'contains', 'corrivate', 'require_request')
                     ])
                     ->request(['user_agent' => 'Corrivate HQ', 'route' => 'http://mag2.test/rest/V1/store/websites'])
-                    ->logRequest(true),
+                    ->shouldLogRequest(true),
 
             'Not all "require" filters pass' =>
                 (new Scenario())
-                    ->config([
+                    ->requestFiltersConfig([
                         new Filter('route', 'contains', 'store', 'require_request'),
                         new Filter('user_agent', 'contains', 'corrivate', 'require_request')
                     ])
                     ->request(['user_agent' => 'Corrivate HQ', 'route' => 'somewhere else entirely'])
-                    ->logRequest(false),
+                    ->shouldLogRequest(false),
 
             'Status code filter matches response' =>
                 (new Scenario())
-                    ->config([new Filter('status_code', '>=', '400', 'forbid_response')])
+                    ->responseFiltersConfig([new Filter('status_code', '>=', '400', 'forbid_response')])
                     ->response(['status_code' => '500'])
-                    ->logResponse(false),
+                    ->shouldLogResponse(false),
 
             'Status code filter does not match response' =>
                 (new Scenario())
-                    ->config([new Filter('status_code', '<', '400', 'require_response')])
+                    ->responseFiltersConfig([new Filter('status_code', '<', '400', 'require_response')])
                     ->response(['status_code' => '500'])
-                    ->logResponse(false),
+                    ->shouldLogResponse(false),
 
             'Comparison is case insensitive' =>
                 (new Scenario())
-                    ->config([new Filter('user_agent', '=', 'Corrivate', 'allow_request')])
+                    ->requestFiltersConfig([new Filter('user_agent', '=', 'Corrivate', 'allow_request')])
                     ->request(['user_agent' => 'corrivate'])
-                    ->logRequest(true),
+                    ->shouldLogRequest(true),
 
             'Filter state is retained from request to response' =>
                 (new Scenario())
-                    ->config([new Filter('user_agent', '=', 'Corrivate', 'forbid_response')])
+                    ->requestFiltersConfig([new Filter('user_agent', '=', 'Corrivate', 'forbid_response')])
                     ->request(['user_agent' => 'corrivate'])
-                    ->logResponse(false),
+                    ->shouldLogResponse(false),
 
             'Endpoints filters without variables are matched' =>
                 (new Scenario())
-                    ->config([new Filter('endpoint', '=', 'GET orders', 'censor_both')])
+                    ->requestFiltersConfig([new Filter('endpoint', '=', 'GET orders', 'censor_both')])
                     ->request(['route' => 'http://mag2.test/rest/V1/orders', 'method' => 'get'])
-                    ->censorRequestBody(true)
-                    ->censorResponseBody(true),
+                    ->shouldCensorRequestBody(true)
+                    ->shouldCensorResponseBody(true),
 
             'Endpoints with variables in them are matched in their generic form' =>
                 (new Scenario())
-                    ->config([new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both')])
+                    ->requestFiltersConfig([new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both')])
                     ->request(['route' => 'http://mag2.test/rest/V1/orders/1/comments', 'method' => 'get'])
-                    ->censorRequestBody(true)
-                    ->censorResponseBody(true),
+                    ->shouldCensorRequestBody(true)
+                    ->shouldCensorResponseBody(true),
+
+            'Endpoints with variables are distinguished from endpoints with fixed fragments' =>
+                (new Scenario())
+                    ->requestFiltersConfig([
+                        new Filter('endpoint', '=', 'GET cmsPage/:id', 'censor_response')
+                    ])
+                    ->request(['route' => 'http://mag2.test/rest/default/V1/cmsPage/search?searchCriteria=', 'method' => 'get'])
+                    ->shouldCensorRequestBody(false)
+                    ->shouldCensorResponseBody(false),
 
             'Query parameters are ignored when matching a request with a service' =>
                 (new Scenario())
-                    ->config([new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both')])
+                    ->requestFiltersConfig([new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both')])
                     ->request(['route' => 'http://mag2.test/rest/V1/orders/1/comments?query=true', 'method' => 'get'])
-                    ->censorRequestBody(true)
-                    ->censorResponseBody(true),
+                    ->shouldCensorRequestBody(true)
+                    ->shouldCensorResponseBody(true),
 
             'Endpoint filters distinguish different methods on the same endpoint' =>
                 (new Scenario())
-                    ->config([new Filter('endpoint', '=', 'GET customerGroups/:id', 'censor_both')])
+                    ->requestFiltersConfig([new Filter('endpoint', '=', 'GET customerGroups/:id', 'censor_both')])
                     ->request(['route' => 'http://mag2.test/rest/V1/customerGroups/1', 'method' => 'put'])
-                    ->censorRequestBody(false)
-                    ->censorResponseBody(false)
+                    ->shouldCensorRequestBody(false)
+                    ->shouldCensorResponseBody(false)
 
 
         ];
@@ -245,17 +231,25 @@ class MainFilterTest extends TestCase
 
 class Scenario //phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
 {
-    public array $config = [];
+    public array $requestFilters = [];
+    public array $responseFilters = [];
     public array $request = [];
-    public ?bool $logRequest = null;
-    public ?bool $censorRequestBody = null;
+    public ?bool $shouldLogRequest = null;
+    public ?bool $shouldCensorRequestBody = null;
     public array $response = [];
-    public ?bool $logResponse = null;
-    public ?bool $censorResponseBody = null;
+    public ?bool $shouldLogResponse = null;
+    public ?bool $shouldCensorResponseBody = null;
 
-    public function config(array $config): Scenario
+
+    public function requestFiltersConfig(array $config): Scenario
     {
-        $this->config = $config;
+        $this->requestFilters = $config;
+        return $this;
+    }
+
+    public function responseFiltersConfig(array $config): Scenario
+    {
+        $this->responseFilters = $config;
         return $this;
     }
 
@@ -265,15 +259,15 @@ class Scenario //phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
         return $this;
     }
 
-    public function logRequest(bool $policy): Scenario
+    public function shouldLogRequest(bool $policy): Scenario
     {
-        $this->logRequest = $policy;
+        $this->shouldLogRequest = $policy;
         return $this;
     }
 
-    public function censorRequestBody(bool $policy): Scenario
+    public function shouldCensorRequestBody(bool $policy): Scenario
     {
-        $this->censorRequestBody = $policy;
+        $this->shouldCensorRequestBody = $policy;
         return $this;
     }
 
@@ -283,15 +277,15 @@ class Scenario //phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
         return $this;
     }
 
-    public function logResponse(bool $policy): Scenario
+    public function shouldLogResponse(bool $policy): Scenario
     {
-        $this->logResponse = $policy;
+        $this->shouldLogResponse = $policy;
         return $this;
     }
 
-    public function censorResponseBody(bool $policy): Scenario
+    public function shouldCensorResponseBody(bool $policy): Scenario
     {
-        $this->censorResponseBody = $policy;
+        $this->shouldCensorResponseBody = $policy;
         return $this;
     }
 }
