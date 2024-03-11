@@ -9,6 +9,7 @@ use Corrivate\RestApiLogger\Formatter\BodyFormatter;
 use Corrivate\RestApiLogger\Formatter\HeadersFormatter;
 use Corrivate\RestApiLogger\Logger\Logger;
 use Corrivate\RestApiLogger\Model\Config;
+use Laminas\Http\Header\HeaderInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Webapi\Rest\Response;
 use Magento\Webapi\Controller\Rest;
@@ -74,7 +75,11 @@ class RestPlugin
             } elseif ($shouldCensorRequestBody) {
                 $content = "(redacted by filter)";
             } else {
-                $content = $this->bodyFormatter->format((string)$request->getContent());
+                $accept = $request->getHeader('Accept');
+                $accept = strpos($accept, '*/*') !== false
+                    ? 'json'
+                    : $accept;
+                $content = $this->bodyFormatter->format((string)$request->getContent(), $accept);
             }
 
             $payload = ['BODY' => $content];
@@ -114,7 +119,9 @@ class RestPlugin
             } elseif ($shouldCensorResponseBody) {
                 $content = '(redacted by filter)';
             } else {
-                $content = $this->bodyFormatter->format((string)$response->getBody());
+                $contentType = $response->getHeader('Content-Type');
+                $contentType = $contentType instanceof HeaderInterface ? $contentType->toString() : 'other';
+                $content = $this->bodyFormatter->format((string)$response->getBody(), $contentType);
             }
 
             $payload = [
