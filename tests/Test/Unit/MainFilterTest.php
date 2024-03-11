@@ -202,7 +202,10 @@ class MainFilterTest extends TestCase
                     ->requestFiltersConfig([
                         new Filter('endpoint', '=', 'GET cmsPage/:id', 'censor_response')
                     ])
-                    ->request(['route' => 'http://mag2.test/rest/default/V1/cmsPage/search?searchCriteria=', 'method' => 'get'])
+                    ->request([
+                        'method' => 'get',
+                        'route' => 'http://mag2.test/rest/default/V1/cmsPage/search?searchCriteria='
+                    ])
                     ->shouldCensorRequestBody(false)
                     ->shouldCensorResponseBody(false),
 
