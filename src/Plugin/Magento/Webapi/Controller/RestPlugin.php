@@ -76,6 +76,11 @@ class RestPlugin
                 $content = "(redacted by filter)";
             } else {
                 $accept = $request->getHeader('Accept');
+
+                if(!is_string($accept)) {
+                    $accept = 'json';
+                }
+
                 $accept = strpos($accept, '*/*') !== false
                     ? 'json'
                     : $accept;

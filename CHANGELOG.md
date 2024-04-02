@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.7.1
+- Fix type error in reading accept header
+
 ## 0.7.0
 - Configuration revised
   - Should now be in stable form for the long term
