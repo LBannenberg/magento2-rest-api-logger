@@ -39,7 +39,21 @@ class Config
             return [];
         }
         return [
-            new Filter('request_body', 'contains', 'street', 'censor_both')
+            new Filter('request_body', 'contains', 'street', 'censor_both'),
+
+            new Filter('route', 'contains', '/V1/applepay', 'censor_both'),
+            new Filter('route', 'contains', '/V1/braintree', 'censor_both'),
+            new Filter('route', 'contains', '/V1/carts', 'censor_both'),
+            new Filter('route', 'contains', '/V1/creditmemo', 'censor_both'),
+            new Filter('route', 'contains', '/V1/customers', 'censor_both'),
+            new Filter('route', 'contains', '/V1/guest-carts', 'censor_both'),
+            new Filter('route', 'contains', '/V1/inventory/get-latlng-from-address', 'censor_both'),
+            new Filter('route', 'contains', '/V1/get-latslngs-from-address', 'censor_both'),
+            new Filter('route', 'contains', '/V1/invoices', 'censor_both'),
+            new Filter('route', 'contains', '/V1/orders', 'censor_both'),
+            new Filter('route', 'contains', '/V1/shipment', 'censor_both'),
+            new Filter('route', 'contains', '/V1/tfa', 'censor_both'),
+
         ];
     }
 
