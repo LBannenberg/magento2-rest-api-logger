@@ -30,7 +30,7 @@ class EndpointFilterTest extends TestCase
         );
 
         // ACT
-        $match = $unitUnderTest->matchPathToService($scenario->path, $scenario->filter);
+        $match = $unitUnderTest->matchRequestToFilter($scenario->path, $scenario->filter);
 
 
         // ASSERT
@@ -72,7 +72,7 @@ class EndpointFilterTest extends TestCase
                     false
                 ),
 
-            'Query parameters are ignored when matching a request with a service' =>
+            'Query parameters are ignored when matching a request with an endpoint' =>
                 new EndpointFilterScenario(
                     'get http://mag2.test/rest/V1/orders/1/comments?query=true',
                     new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both'),

@@ -81,7 +81,7 @@ class MainFilter
     private function aspectMatchesCondition(string $aspectValue, Filter $filter): bool
     {
         if ($filter->aspect == 'endpoint') {
-            return $this->endpointFilter->matchPathToService($aspectValue, $filter);
+            return $this->endpointFilter->matchRequestToFilter($aspectValue, $filter);
         }
 
         $aspectValue = strtolower($aspectValue);

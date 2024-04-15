@@ -8,52 +8,53 @@ use Psr\Log\LoggerInterface;
 class EndpointFilter
 {
     private LoggerInterface $logger;
-
-    private string $observedMethod = '';
+    private string $requestMethod = '';
 
     /** @var string[] */
-    private array $observedServiceParts = [];
+    private array $requestPathParts = [];
+    private string $matchedEndpoint = '';
 
-    private string $matchedPath = '';
 
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
     }
-    public function matchPathToService(string $path, Filter $filter): bool
+
+
+    public function matchRequestToFilter(string $requestedMethodAndPath, Filter $filter): bool
     {
-        if ($this->matchedPath && $filter->value != $this->matchedPath) {
-            return false; // We already matched the path to a different endpoint
+        if ($this->matchedEndpoint && $filter->value != $this->matchedEndpoint) {
+            return false; // We already matched the request to a different endpoint
         }
 
-        // Is this the first time unpacking the observed service?
-        if (!$this->observedMethod || !$this->observedServiceParts) {
-            $this->observe($path); // Will fill those properties after running once.
+        // Is this the first time unpacking the requested endpoint?
+        if (!$this->requestMethod || !$this->requestPathParts) {
+            $this->unpackRequestedEndpoint($requestedMethodAndPath); // Will fill those properties after running once.
         }
 
-        [$configuredMethod, $configuredServiceParts] = $this->unpackConfig($filter->value);
-        $countConfiguredServiceParts = count($configuredServiceParts);
+        [$configuredMethod, $configuredPathParts] = $this->unpackConfiguredEndpoint($filter->value);
+        $countConfiguredPathParts = count($configuredPathParts);
 
-        if (strtolower($this->observedMethod) != strtolower($configuredMethod)) {
+        if (strtolower($this->requestMethod) != strtolower($configuredMethod)) {
             return false; // It's not the same endpoint if the methods are different
         }
 
-        if (count($this->observedServiceParts) != $countConfiguredServiceParts) {
+        if (count($this->requestPathParts) != $countConfiguredPathParts) {
             return false; // It can't be the same endpoint if they don't have the same amount of parts
         }
 
-        // Compare the parts to see if they're either the same,
-        // or if the observed part is a value for a variable from the config
+        // Compare the path parts to see if each of them matches,
+        // or if the requested part is a value for a variable from the config
         $match = true;
-        for ($i = 0; $i < $countConfiguredServiceParts; $i++) {
-            if (!$this->compareParts($configuredServiceParts[$i], $this->observedServiceParts[$i])) {
+        for ($i = 0; $i < $countConfiguredPathParts; $i++) {
+            if (!$this->compareParts($configuredPathParts[$i], $this->requestPathParts[$i])) {
                 $match = false;
                 break;
             }
         }
 
         if ($match) {
-            $this->matchedPath = $filter->value;
+            $this->matchedEndpoint = $filter->value;
         }
 
         if ($filter->condition == '=') {
@@ -67,21 +68,23 @@ class EndpointFilter
         return false;
     }
 
-    private function observe(string $path): void
+
+    private function unpackRequestedEndpoint(string $methodAndEndpoint): void
     {
-        $observed = explode(' ', $path);
-        $this->observedMethod = $observed[0];
-        $observedService = explode('/V1/', $observed[1])[1];
-        if (strpos($observedService, '?') !== false) {
-            $observedService = explode('?', $observedService)[0];
+        $requestElements = explode(' ', $methodAndEndpoint);
+        $this->requestMethod = $requestElements[0];
+        $requestedPath = explode('/V1/', $requestElements[1])[1];
+        if (strpos($requestedPath, '?') !== false) {
+            $requestedPath = explode('?', $requestedPath)[0];
         }
-        $this->observedServiceParts = explode('/', $observedService);
+        $this->requestPathParts = explode('/', $requestedPath);
     }
 
-    private function compareParts(string $configPart, string $observedPart): bool
+
+    private function compareParts(string $configPart, string $requestPart): bool
     {
         if (strpos($configPart, ':') !== 0) { // Configured part is not a variable
-            return $configPart == $observedPart;
+            return $configPart == $requestPart;
         }
 
         // IDs need to be numeric
@@ -90,7 +93,7 @@ class EndpointFilter
         // - /cmsPage/search?searchCriteria=
         // - /cmsPage/:pageId
         if (substr(strtolower($configPart), -2) ===  'id') {
-            return is_numeric($observedPart);
+            return is_numeric($requestPart);
         }
 
         // Not an ID, so any string ought to match
@@ -99,11 +102,11 @@ class EndpointFilter
 
 
     /** @return array{string, string[]} */
-    private function unpackConfig(string $value): array
+    private function unpackConfiguredEndpoint(string $methodAndPath): array
     {
-        $configured = explode(' ', $value);
-        $configuredMethod = $configured[0];
-        $configuredServiceParts = explode('/', str_replace('V1/', '', $configured[1]));
-        return [$configuredMethod, $configuredServiceParts];
+        $configuredElements = explode(' ', $methodAndPath);
+        $configuredMethod = $configuredElements[0];
+        $configuredPathParts = explode('/', str_replace('V1/', '', $configuredElements[1]));
+        return [$configuredMethod, $configuredPathParts];
     }
 }
