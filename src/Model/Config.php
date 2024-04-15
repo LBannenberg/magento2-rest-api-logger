@@ -41,6 +41,8 @@ class Config
         return [
             new Filter('request_body', 'contains', 'street', 'censor_both'),
 
+            // Endpoints likely to contain sensitive data
+            // Filtered as routes so we don't have to decompose them on every request
             new Filter('route', 'contains', '/V1/applepay', 'censor_both'),
             new Filter('route', 'contains', '/V1/braintree', 'censor_both'),
             new Filter('route', 'contains', '/V1/carts', 'censor_both'),
@@ -53,7 +55,6 @@ class Config
             new Filter('route', 'contains', '/V1/orders', 'censor_both'),
             new Filter('route', 'contains', '/V1/shipment', 'censor_both'),
             new Filter('route', 'contains', '/V1/tfa', 'censor_both'),
-
         ];
     }
 

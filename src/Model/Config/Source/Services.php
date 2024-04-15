@@ -47,7 +47,6 @@ class Services implements \Magento\Framework\Data\OptionSourceInterface
             }
 
             ksort($this->options);
-
         }
 
         return $this->options;
