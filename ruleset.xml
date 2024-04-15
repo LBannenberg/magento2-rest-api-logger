@@ -18,5 +18,8 @@
 
         <!-- Conflicts with PSR12.ControlStructures.ControlStructureSpacing.FirstExpressionLine -->
         <exclude name="PSR2.ControlStructures.ControlStructureSpacing.SpacingAfterOpenBrace"/>
+
+        <!-- Necessary for admin styling -->
+        <exclude name="Magento2.Less.AvoidId.IdSelectorUsage"/>
     </rule>
 </ruleset>

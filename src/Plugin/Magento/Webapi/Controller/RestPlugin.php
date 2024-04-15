@@ -77,7 +77,7 @@ class RestPlugin
             } else {
                 $accept = $request->getHeader('Accept');
 
-                if(!is_string($accept)) {
+                if (!is_string($accept)) {
                     $accept = 'json';
                 }
 
