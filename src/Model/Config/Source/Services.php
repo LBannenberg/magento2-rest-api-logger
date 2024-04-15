@@ -45,6 +45,9 @@ class Services implements \Magento\Framework\Data\OptionSourceInterface
                     $this->options[$group][$service] = $service;
                 }
             }
+
+            ksort($this->options);
+
         }
 
         return $this->options;
