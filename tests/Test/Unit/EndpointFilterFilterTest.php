@@ -22,7 +22,7 @@ class EndpointFilterTest extends TestCase
     /**
      * @dataProvider scenarioProvider
      */
-    public function testScenarios(EndpointScenario $scenario)
+    public function testScenarios(EndpointFilterScenario $scenario)
     {
         // ARRANGE
         $unitUnderTest = new EndpointFilter(
@@ -39,41 +39,41 @@ class EndpointFilterTest extends TestCase
 
 
     /**
-     * @return array<Scenario[]>
+     * @return array<EndpointFilterScenario[]>
      */
     public function scenarioProvider(): array
     {
         $scenarios = [
             'Endpoints filters without variables are matched' =>
-                new EndpointScenario(
+                new EndpointFilterScenario(
                     'GET http://mag2.test/rest/V1/orders',
                     new Filter('endpoint', '=', 'GET orders', 'censor_both'),
                     true
                 ),
 
             'Endpoints with variables in them are matched in their generic form' =>
-                new EndpointScenario(
+                new EndpointFilterScenario(
                     'get http://mag2.test/rest/V1/orders/1/comments',
                     new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both'),
                     true
                 ),
 
             'Endpoints with variables are distinguished from endpoints with fixed fragments' =>
-                new EndpointScenario(
+                new EndpointFilterScenario(
                     'get http://mag2.test/rest/default/V1/cmsPage/search?searchCriteria=',
                     new Filter('endpoint', '=', 'GET cmsPage/:id', 'censor_response'),
                     false
                 ),
 
             'Endpoint filters distinguish different methods on the same endpoint' =>
-                new EndpointScenario(
+                new EndpointFilterScenario(
                     'put http://mag2.test/rest/V1/customerGroups/1',
                     new Filter('endpoint', '=', 'GET customerGroups/:id', 'censor_both'),
                     false
                 ),
 
             'Query parameters are ignored when matching a request with a service' =>
-                new EndpointScenario(
+                new EndpointFilterScenario(
                     'get http://mag2.test/rest/V1/orders/1/comments?query=true',
                     new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both'),
                     true
@@ -86,7 +86,7 @@ class EndpointFilterTest extends TestCase
 }
 
 
-class EndpointScenario //phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
+class EndpointFilterScenario //phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
 {
     public string $path;
     public Filter $filter;

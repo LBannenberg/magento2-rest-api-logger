@@ -27,7 +27,7 @@ class MainFilterTest extends TestCase
     /**
      * @dataProvider scenarioProvider
      */
-    public function testScenarios(Scenario $scenario)
+    public function testScenarios(MainFilterScenario $scenario)
     {
         // ARRANGE
         $configMock = $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock();
@@ -110,13 +110,13 @@ class MainFilterTest extends TestCase
 
 
     /**
-     * @return array<Scenario[]>
+     * @return array<MainFilterScenario[]>
      */
     public function scenarioProvider(): array
     {
         $scenarios = [
             'If no filters are configured, all signs point to Yes' =>
-                (new Scenario())
+                (new MainFilterScenario())
                     ->requestFiltersConfig([])
                     ->responseFiltersConfig([])
                     ->shouldLogRequest(true)
@@ -125,7 +125,7 @@ class MainFilterTest extends TestCase
                     ->shouldCensorResponseBody(false),
 
             'There are "allow" filters and at least one passes.' =>
-                (new Scenario())
+                (new MainFilterScenario())
                     ->requestFiltersConfig([
                         new Filter('user_agent', 'contains', 'corrivate', 'allow_request'),
                         new Filter('route', 'contains', 'store', 'allow_request')
@@ -134,7 +134,7 @@ class MainFilterTest extends TestCase
                     ->shouldLogRequest(true),
 
             'There are "allow" filters, and no "allow" filter passes' =>
-                (new Scenario())
+                (new MainFilterScenario())
                     ->requestFiltersConfig([
                         new Filter('route', 'contains', 'store', 'allow_request'),
                         new Filter('user_agent', 'contains', 'corrivate', 'allow_request')
@@ -143,7 +143,7 @@ class MainFilterTest extends TestCase
                     ->shouldLogRequest(false),
 
             'All "require" filters pass' =>
-                (new Scenario())
+                (new MainFilterScenario())
                     ->requestFiltersConfig([
                         new Filter('route', 'contains', 'store', 'require_request'),
                         new Filter('user_agent', 'contains', 'corrivate', 'require_request')
@@ -152,7 +152,7 @@ class MainFilterTest extends TestCase
                     ->shouldLogRequest(true),
 
             'Not all "require" filters pass' =>
-                (new Scenario())
+                (new MainFilterScenario())
                     ->requestFiltersConfig([
                         new Filter('route', 'contains', 'store', 'require_request'),
                         new Filter('user_agent', 'contains', 'corrivate', 'require_request')
@@ -161,25 +161,25 @@ class MainFilterTest extends TestCase
                     ->shouldLogRequest(false),
 
             'Status code filter matches response' =>
-                (new Scenario())
+                (new MainFilterScenario())
                     ->responseFiltersConfig([new Filter('status_code', '>=', '400', 'forbid_response')])
                     ->response(['status_code' => '500'])
                     ->shouldLogResponse(false),
 
             'Status code filter does not match response' =>
-                (new Scenario())
+                (new MainFilterScenario())
                     ->responseFiltersConfig([new Filter('status_code', '<', '400', 'require_response')])
                     ->response(['status_code' => '500'])
                     ->shouldLogResponse(false),
 
             'Comparison is case insensitive' =>
-                (new Scenario())
+                (new MainFilterScenario())
                     ->requestFiltersConfig([new Filter('user_agent', '=', 'Corrivate', 'allow_request')])
                     ->request(['user_agent' => 'corrivate'])
                     ->shouldLogRequest(true),
 
             'Filter state is retained from request to response' =>
-                (new Scenario())
+                (new MainFilterScenario())
                     ->requestFiltersConfig([new Filter('user_agent', '=', 'Corrivate', 'forbid_response')])
                     ->request(['user_agent' => 'corrivate'])
                     ->shouldLogResponse(false),
@@ -191,7 +191,7 @@ class MainFilterTest extends TestCase
 }
 
 
-class Scenario //phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
+class MainFilterScenario //phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
 {
     public array $requestFilters = [];
     public array $responseFilters = [];
@@ -203,49 +203,49 @@ class Scenario //phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
     public ?bool $shouldCensorResponseBody = null;
 
 
-    public function requestFiltersConfig(array $config): Scenario
+    public function requestFiltersConfig(array $config): MainFilterScenario
     {
         $this->requestFilters = $config;
         return $this;
     }
 
-    public function responseFiltersConfig(array $config): Scenario
+    public function responseFiltersConfig(array $config): MainFilterScenario
     {
         $this->responseFilters = $config;
         return $this;
     }
 
-    public function request(array $request): Scenario
+    public function request(array $request): MainFilterScenario
     {
         $this->request = $request;
         return $this;
     }
 
-    public function shouldLogRequest(bool $policy): Scenario
+    public function shouldLogRequest(bool $policy): MainFilterScenario
     {
         $this->shouldLogRequest = $policy;
         return $this;
     }
 
-    public function shouldCensorRequestBody(bool $policy): Scenario
+    public function shouldCensorRequestBody(bool $policy): MainFilterScenario
     {
         $this->shouldCensorRequestBody = $policy;
         return $this;
     }
 
-    public function response(array $response): Scenario
+    public function response(array $response): MainFilterScenario
     {
         $this->response = $response;
         return $this;
     }
 
-    public function shouldLogResponse(bool $policy): Scenario
+    public function shouldLogResponse(bool $policy): MainFilterScenario
     {
         $this->shouldLogResponse = $policy;
         return $this;
     }
 
-    public function shouldCensorResponseBody(bool $policy): Scenario
+    public function shouldCensorResponseBody(bool $policy): MainFilterScenario
     {
         $this->shouldCensorResponseBody = $policy;
         return $this;
