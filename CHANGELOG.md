@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0
+At the 1.0 point the layout of the configuration is essentially stable. New features will still be added, but existing configuration does not have to be re-done anymore after updates.
+
+- Added more safer mode filters
+- Updated documentation & comments in the configuration
+- Some code refactoring to make endpoint filters clearer
+
 ## 0.7.1
 - Fix type error in reading accept header
 

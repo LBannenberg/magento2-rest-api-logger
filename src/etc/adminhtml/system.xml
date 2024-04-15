@@ -29,10 +29,26 @@
                     <comment>
                         <![CDATA[
                         <p>In safer mode, some custom filters are always active to help mask sensitive data:</p>
-                        <ul>
+                        <ul style="margin-left: 20px">
                             <li>Header logging is disabled.</li>
                             <li>request body contains "street" =&gt; censor both</li>
                             <li>response body contains "street" =&gt; censor response</li>
+                            <li>Request URLs containing these parts =&gt; censor both<br/>
+                                <ul style="margin-left: 20px">
+                                    <li>/V1/applepay</li>
+                                    <li>/V1/braintree</li>
+                                    <li>/V1/carts</li>
+                                    <li>/V1/creditmemo</li>
+                                    <li>/V1/customers</li>
+                                    <li>/V1/guest-carts</li>
+                                    <li>/V1/inventory/get-latlng-from-address</li>
+                                    <li>/V1/inventory/get-latslngs-from-address</li>
+                                    <li>/V1/invoices</li>
+                                    <li>/V1/orders</li>
+                                    <li>/V1/shipment</li>
+                                    <li>/V1/tfa</li>
+                                </ul>
+                            </li>
                         </ul>
                         <p>Safer mode is not guaranteed to mask all sensitive data. It is intended as a helpful starting point.</p>
                         ]]>
