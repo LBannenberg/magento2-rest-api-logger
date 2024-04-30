@@ -20,7 +20,7 @@
         "magento/module-store": "^101.1",
         "magento/module-webapi": "^100.4",
         "monolog/monolog": "^2.6",
-        "psr/log": "^1.1"
+        "psr/log": "^1.1||^2.0||^3.0"
     },
     "require-dev": {
         "bitexpert/phpstan-magento": "^0.30.1",
