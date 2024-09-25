@@ -20,7 +20,7 @@ class RequestConsequence extends Select
         ['value' => 'forbid_response', 'label' => 'Never log response'],
         ['value' => 'censor_both', 'label' => 'Censor request body & censor response body'],
         ['value' => 'censor_request', 'label' => 'Censor request body'],
-        ['value' => 'censor_response', 'label' => 'Censor request body'],
+        ['value' => 'censor_response', 'label' => 'Censor response body'],
         ['value' => 'require_both', 'label' => 'Required to log request & required to log response'],
         ['value' => 'require_request', 'label' => 'Required to log request'],
         ['value' => 'require_response', 'label' => 'Required to log response'],
