@@ -13,6 +13,8 @@ class EndpointFilterTest extends TestCase
 {
     public function testThatFiltersCanBeInstantiated()
     {
+        $this->expectNotToPerformAssertions();
+
         $filters = new EndpointFilter(
             $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock()
         );
@@ -22,7 +24,7 @@ class EndpointFilterTest extends TestCase
     /**
      * @dataProvider scenarioProvider
      */
-    public function testScenarios(EndpointFilterScenario $scenario)
+    public function testScenarios(array $scenario)
     {
         // ARRANGE
         $unitUnderTest = new EndpointFilter(
@@ -30,72 +32,59 @@ class EndpointFilterTest extends TestCase
         );
 
         // ACT
-        $match = $unitUnderTest->matchRequestToFilter($scenario->path, $scenario->filter);
-
+        $match = $unitUnderTest->matchRequestToFilter($scenario['path'], $scenario['filter']);
 
         // ASSERT
-        $this->assertSame($scenario->shouldMatch, $match);
+        $this->assertSame($scenario['shouldMatch'], $match);
     }
 
 
     /**
-     * @return array<EndpointFilterScenario[]>
+     * @return array{Description: array{path: string, filter: Filter, shouldMatch: bool}}
      */
     public function scenarioProvider(): array
     {
-        $scenarios = [
-            'Endpoints filters without variables are matched' =>
-                new EndpointFilterScenario(
-                    'GET http://mag2.test/rest/V1/orders',
-                    new Filter('endpoint', '=', 'GET orders', 'censor_both'),
-                    true
-                ),
+        return [
+            'Endpoints filters without variables are matched' => [
+                'Description' => [
+                    'path' => 'GET http://mag2.test/rest/V1/orders',
+                    'filter' => new Filter('endpoint', '=', 'GET orders', 'censor_both'),
+                    'shouldMatch' => true
+                ]
+            ],
 
-            'Endpoints with variables in them are matched in their generic form' =>
-                new EndpointFilterScenario(
-                    'get http://mag2.test/rest/V1/orders/1/comments',
-                    new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both'),
-                    true
-                ),
+            'Endpoints with variables in them are matched in their generic form' => [
+                'Description' => [
+                    'path' => 'get http://mag2.test/rest/V1/orders/1/comments',
+                    'filter' => new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both'),
+                    'shouldMatch' => true
+                ]
+            ],
 
-            'Endpoints with variables are distinguished from endpoints with fixed fragments' =>
-                new EndpointFilterScenario(
-                    'get http://mag2.test/rest/default/V1/cmsPage/search?searchCriteria=',
-                    new Filter('endpoint', '=', 'GET cmsPage/:id', 'censor_response'),
-                    false
-                ),
+            'Endpoints with variables are distinguished from endpoints with fixed fragments' => [
+                'Description' => [
+                    'path' => 'get http://mag2.test/rest/default/V1/cmsPage/search?searchCriteria=',
+                    'filter' => new Filter('endpoint', '=', 'GET cmsPage/:id', 'censor_response'),
+                    'shouldMatch' => false
+                ]
+            ],
 
-            'Endpoint filters distinguish different methods on the same endpoint' =>
-                new EndpointFilterScenario(
-                    'put http://mag2.test/rest/V1/customerGroups/1',
-                    new Filter('endpoint', '=', 'GET customerGroups/:id', 'censor_both'),
-                    false
-                ),
+            'Endpoint filters distinguish different methods on the same endpoint' => [
+                'Description' => [
+                    'path' => 'put http://mag2.test/rest/V1/customerGroups/1',
+                    'filter' => new Filter('endpoint', '=', 'GET customerGroups/:id', 'censor_both'),
+                    'shouldMatch' => false
+                ]
+            ],
 
-            'Query parameters are ignored when matching a request with an endpoint' =>
-                new EndpointFilterScenario(
-                    'get http://mag2.test/rest/V1/orders/1/comments?query=true',
-                    new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both'),
-                    true
-                )
+            'Query parameters are ignored when matching a request with an endpoint' => [
+                'Description' => [
+                    'path' => 'get http://mag2.test/rest/V1/orders/1/comments?query=true',
+                    'filter' => new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both'),
+                    'shouldMatch' => true
+                ]
+            ]
+
         ];
-
-        // PHPUnit requires each case to be an array of (1) input arguments
-        return array_map(fn($s) => [$s], $scenarios);
-    }
-}
-
-
-class EndpointFilterScenario //phpcs:ignore PSR1.Classes.ClassDeclaration.MultipleClasses
-{
-    public string $path;
-    public Filter $filter;
-    public bool $shouldMatch;
-
-    public function __construct(string $path, Filter $filter, bool $shouldMatch)
-    {
-        $this->path = $path;
-        $this->filter = $filter;
-        $this->shouldMatch = $shouldMatch;
     }
 }
