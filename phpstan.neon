@@ -1,16 +1,16 @@
 parameters:
-    #    phpVersion: 70400 # also supported
-    #    phpVersion: 80100 # also supported
-    phpVersion: 80200 # also supported
+#    phpVersion: 70400 # also supported
+#    phpVersion: 80100 # also supported
+#    phpVersion: 80200 # also supported
 #    phpVersion: 80300 # also supported
+    phpVersion: 80400 # also supported
     level: 8
     paths:
-        # expecting you to run this from project root,
-        # epecting the package to located in {project root}/packages/corrivate/magento2-rest-api-logger
-        # expecting you to be using composer "path" repository for local development
         - src
     ignoreErrors:
-        # Magento makes use of some methods defined on the concrete class, but not the interface
+        # Magento makes use of some methods that are defined on the concrete class, but not the interface :(
         - '#Call to an undefined method Magento\\Framework\\App\\RequestInterface::#'
     excludePaths:
         - tests/*
+
+# You should be using PHPStan while located in your main Magento project directory, so that symbol discovery works correctly.
