@@ -17,6 +17,8 @@ class MainFilterTest extends TestCase
 {
     public function testThatFiltersCanBeInstantiated()
     {
+        $this->expectNotToPerformAssertions();
+
         $filters = new MainFilter(
             $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock(),
             $this->getMockBuilder(EndpointFilter::class)->disableOriginalConstructor()->getMock(),
