@@ -88,9 +88,9 @@ When "safer mode" is active in the configuration, the following additional filte
 
 ## Credits
 
-![HYPR](docs/hypershop_b_v__logo.jpeg)
+![HYPR](docs/HYPER.jpg)
 
-This module was originally created at HYPR. With their permission it has been open-sourced and been developed further.
+This module was originally created at HYPER. With their permission it has been open-sourced and been developed further.
 
 The design of the module builds on previous loggers, in particular  https://github.com/vladflonta/magento2-webapi-log ; however, that module appears to be no longer actively supported.
 
