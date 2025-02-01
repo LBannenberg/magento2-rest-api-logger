@@ -4,6 +4,7 @@
         <resources>
             <resource id="Magento_Backend::admin">
                 <resource id="Corrivate_RestApiLogger::config" sortOrder="10" title="Config"/>
+                <resource id="Corrivate_RestApiLogger::download_log" sortOrder="20" title="Download Logs"/>
             </resource>
         </resources>
     </acl>

@@ -1,0 +1,15 @@
+<?php
+
+/** @var \Corrivate\RestApiLogger\Block\Adminhtml\LogFile $block */
+/** @var \Magento\Framework\Escaper $escaper */
+
+?>
+
+<?php if ($block->getFileSize()): ?>
+<div>
+    <a href="<?= $escaper->escapeUrl($block->getDownloadUrl()) ?>" class="action primary">
+        <?= $escaper->escapeHtml(__('Download Log')) ?>
+        (<?= $escaper->escapeHtml(__('File size: ')) ?> <?= $escaper->escapeHtml($block->getFileSizeText()) ?>)
+    </a>
+</div>
+<?php endif; ?>

@@ -16,6 +16,12 @@
                 <p style="color:red;">API logging can reveal sensitive data. Use at your own responsibility.</p>
                 ]]></comment>
 
+                <field id="log_file" translate="label" type="text" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Log File</label>
+                    <comment>comment</comment>
+                    <frontend_model>\Corrivate\RestApiLogger\Block\Adminhtml\LogFile</frontend_model>
+                </field>
+
                 <field id="enabled" translate="label" type="select" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Enable</label>
                     <comment>
