@@ -18,9 +18,9 @@ fi
 # Get the current branch name
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-# Check if the current branch is master
-if [ "$CURRENT_BRANCH" != "master" ]; then
-    echo "Error: You must be on the 'master' branch to update the version."
+# Check if the current branch is main
+if [ "$CURRENT_BRANCH" != "main" ]; then
+    echo "Error: You must be on the 'main' branch to update the version."
     exit 1
 fi
 
@@ -120,4 +120,4 @@ rm composer.json.bak
 
 # Report success & last manual step
 echo "Version updated to $NEW_VERSION and tagged successfully. You can push the changes with the following command:"
-echo "  git push origin master --tags"
+echo "  git push origin main --tags"
