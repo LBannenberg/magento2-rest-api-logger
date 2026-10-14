@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1
+Allow PHP 8.5 and 8.6 in composer.json 
+
 ## 1.0.0
 At the 1.0 point the layout of the configuration is essentially stable. New features will still be added, but existing configuration does not have to be re-done anymore after updates.
 
