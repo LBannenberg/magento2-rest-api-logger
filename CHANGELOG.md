@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.1
+## 1.3.1
 Allow PHP 8.5 and 8.6 in composer.json 
 
 ## 1.0.0
