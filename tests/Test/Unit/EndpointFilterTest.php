@@ -6,6 +6,7 @@ namespace Corrivate\RestApiLogger\Tests\Unit;
 
 use Corrivate\RestApiLogger\Filter\EndpointFilter;
 use Corrivate\RestApiLogger\Model\Config\Filter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -16,7 +17,7 @@ class EndpointFilterTest extends TestCase
         $this->expectNotToPerformAssertions();
 
         $filters = new EndpointFilter(
-            $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock()
+            $this->createStub(LoggerInterface::class)
         );
     }
 
@@ -24,11 +25,12 @@ class EndpointFilterTest extends TestCase
     /**
      * @dataProvider scenarioProvider
      */
+    #[DataProvider('scenarioProvider')]
     public function testScenarios(array $scenario)
     {
         // ARRANGE
         $unitUnderTest = new EndpointFilter(
-            $this->getMockBuilder(LoggerInterface::class)->disableOriginalConstructor()->getMock()
+            $this->createStub(LoggerInterface::class)
         );
 
         // ACT
@@ -40,13 +42,13 @@ class EndpointFilterTest extends TestCase
 
 
     /**
-     * @return array{Description: array{path: string, filter: Filter, shouldMatch: bool}}
+     * @return array<string, array{0: array{path: string, filter: Filter, shouldMatch: bool}}>
      */
-    public function scenarioProvider(): array
+    public static function scenarioProvider(): array
     {
         return [
             'Endpoints filters without variables are matched' => [
-                'Description' => [
+                [
                     'path' => 'GET http://mag2.test/rest/V1/orders',
                     'filter' => new Filter('endpoint', '=', 'GET orders', 'censor_both'),
                     'shouldMatch' => true
@@ -54,7 +56,7 @@ class EndpointFilterTest extends TestCase
             ],
 
             'Endpoints with variables in them are matched in their generic form' => [
-                'Description' => [
+                [
                     'path' => 'get http://mag2.test/rest/V1/orders/1/comments',
                     'filter' => new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both'),
                     'shouldMatch' => true
@@ -62,7 +64,7 @@ class EndpointFilterTest extends TestCase
             ],
 
             'Endpoints with variables are distinguished from endpoints with fixed fragments' => [
-                'Description' => [
+                [
                     'path' => 'get http://mag2.test/rest/default/V1/cmsPage/search?searchCriteria=',
                     'filter' => new Filter('endpoint', '=', 'GET cmsPage/:id', 'censor_response'),
                     'shouldMatch' => false
@@ -70,7 +72,7 @@ class EndpointFilterTest extends TestCase
             ],
 
             'Endpoint filters distinguish different methods on the same endpoint' => [
-                'Description' => [
+                [
                     'path' => 'put http://mag2.test/rest/V1/customerGroups/1',
                     'filter' => new Filter('endpoint', '=', 'GET customerGroups/:id', 'censor_both'),
                     'shouldMatch' => false
@@ -78,7 +80,7 @@ class EndpointFilterTest extends TestCase
             ],
 
             'Query parameters are ignored when matching a request with an endpoint' => [
-                'Description' => [
+                [
                     'path' => 'get http://mag2.test/rest/V1/orders/1/comments?query=true',
                     'filter' => new Filter('endpoint', '=', 'GET orders/:id/comments', 'censor_both'),
                     'shouldMatch' => true

@@ -10,6 +10,7 @@ use Corrivate\RestApiLogger\Model\Config\Filter;
 use Corrivate\RestApiLogger\Filter\MainFilter;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Webapi\Rest\Response;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class MainFilterTest extends TestCase
@@ -19,8 +20,8 @@ class MainFilterTest extends TestCase
         $this->expectNotToPerformAssertions();
 
         $filters = new MainFilter(
-            $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock(),
-            $this->getMockBuilder(EndpointFilter::class)->disableOriginalConstructor()->getMock(),
+            $this->createStub(Config::class),
+            $this->createStub(EndpointFilter::class),
         );
     }
 
@@ -28,14 +29,15 @@ class MainFilterTest extends TestCase
     /**
      * @dataProvider scenarioProvider
      */
+    #[DataProvider('scenarioProvider')]
     public function testScenarios(array $scenario)
     {
         // ARRANGE
-        $configMock = $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock();
+        $configMock = $this->createStub(Config::class);
         $configMock->method('getRequestFilters')->willReturn($scenario['requestFilters']);
         $configMock->method('getResponseFilters')->willReturn($scenario['responseFilters']);
 
-        $endpointFilterMock = $this->getMockBuilder(EndpointFilter::class)->disableOriginalConstructor()->getMock();
+        $endpointFilterMock = $this->createStub(EndpointFilter::class);
 
         $requestMock = $this->buildMockRequest($scenario['request']);
 
@@ -68,7 +70,7 @@ class MainFilterTest extends TestCase
 
     private function buildMockRequest(array $aspects): Request
     {
-        $mock = $this->getMockBuilder(Request::class)->disableOriginalConstructor()->getMock();
+        $mock = $this->createStub(Request::class);
 
         if (isset($aspects['method'])) {
             $mock->method('getMethod')->willReturn($aspects['method']);
@@ -83,7 +85,10 @@ class MainFilterTest extends TestCase
         }
 
         if (isset($aspects['user_agent'])) {
-            $mock->method('getHeader')->with('User-Agent')->willReturn($aspects['user_agent']);
+            $mock->method('getHeader')->willReturnCallback(function ($name) use ($aspects) {
+                $this->assertSame('User-Agent', $name);
+                return $aspects['user_agent'];
+            });
         }
 
         if (isset($aspects['request_body'])) {
@@ -96,7 +101,7 @@ class MainFilterTest extends TestCase
 
     private function buildMockResponse(array $aspects): Response
     {
-        $mock = $this->getMockBuilder(Response::class)->disableOriginalConstructor()->getMock();
+        $mock = $this->createStub(Response::class);
 
         if (isset($aspects['status_code'])) {
             $mock->method('getStatusCode')->willReturn($aspects['status_code']);
@@ -110,7 +115,7 @@ class MainFilterTest extends TestCase
     }
 
 
-    public function scenarioProvider(): array
+    public static function scenarioProvider(): array
     {
         $scenarios = [
             'If no filters are configured, all signs point to Yes' => [
