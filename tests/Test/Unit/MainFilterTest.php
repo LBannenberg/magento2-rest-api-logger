@@ -19,56 +19,55 @@ class MainFilterTest extends TestCase
         $this->expectNotToPerformAssertions();
 
         $filters = new MainFilter(
-            $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock(),
-            $this->getMockBuilder(EndpointFilter::class)->disableOriginalConstructor()->getMock(),
+            $this->createStub(Config::class),
+            $this->createStub(EndpointFilter::class),
         );
     }
 
 
-    /**
-     * @dataProvider scenarioProvider
-     */
-    public function testScenarios(array $scenario)
+    public function testScenarios()
     {
-        // ARRANGE
-        $configMock = $this->getMockBuilder(Config::class)->disableOriginalConstructor()->getMock();
-        $configMock->method('getRequestFilters')->willReturn($scenario['requestFilters']);
-        $configMock->method('getResponseFilters')->willReturn($scenario['responseFilters']);
+        foreach (self::scenarioProvider() as $name => [$scenario]) {
+            // ARRANGE
+            $configMock = $this->createStub(Config::class);
+            $configMock->method('getRequestFilters')->willReturn($scenario['requestFilters']);
+            $configMock->method('getResponseFilters')->willReturn($scenario['responseFilters']);
 
-        $endpointFilterMock = $this->getMockBuilder(EndpointFilter::class)->disableOriginalConstructor()->getMock();
+            $endpointFilterMock = $this->createStub(EndpointFilter::class);
 
-        $requestMock = $this->buildMockRequest($scenario['request']);
+            $requestMock = $this->buildMockRequest($scenario['request']);
 
-        $responseMock = $this->buildMockResponse($scenario['response']);
+            $responseMock = $this->buildMockResponse($scenario['response']);
 
-        $filters = new MainFilter($configMock, $endpointFilterMock);
+            $filters = new MainFilter($configMock, $endpointFilterMock);
 
-        // ACT
-        [$shouldLogRequest, $shouldCensorRequestBody] = $filters->processRequest($requestMock);
-        [$shouldLogResponse, $shouldCensorResponseBody] = $filters->processResponse($responseMock);
+            // ACT
+            [$shouldLogRequest, $shouldCensorRequestBody] = $filters->processRequest($requestMock);
+            [$shouldLogResponse, $shouldCensorResponseBody] = $filters->processResponse($responseMock);
 
-        // ASSERT
-        if ($scenario['shouldLogRequest'] !== null) {
-            $this->assertSame($scenario['shouldLogRequest'], $shouldLogRequest);
-        }
+            // ASSERT
+            if ($scenario['shouldLogRequest'] !== null) {
+                $this->assertSame($scenario['shouldLogRequest'], $shouldLogRequest, $name);
+            }
 
-        if ($scenario['shouldCensorRequestBody'] !== null) {
-            $this->assertSame($scenario['shouldCensorRequestBody'], $shouldCensorRequestBody);
-        }
+            if ($scenario['shouldCensorRequestBody'] !== null) {
+                $this->assertSame($scenario['shouldCensorRequestBody'], $shouldCensorRequestBody, $name);
+            }
 
-        if ($scenario['shouldLogResponse'] !== null) {
-            $this->assertSame($scenario['shouldLogResponse'], $shouldLogResponse);
-        }
+            if ($scenario['shouldLogResponse'] !== null) {
+                $this->assertSame($scenario['shouldLogResponse'], $shouldLogResponse, $name);
+            }
 
-        if ($scenario['shouldCensorResponseBody'] !== null) {
-            $this->assertSame($scenario['shouldCensorResponseBody'], $shouldCensorResponseBody);
+            if ($scenario['shouldCensorResponseBody'] !== null) {
+                $this->assertSame($scenario['shouldCensorResponseBody'], $shouldCensorResponseBody, $name);
+            }
         }
     }
 
 
     private function buildMockRequest(array $aspects): Request
     {
-        $mock = $this->getMockBuilder(Request::class)->disableOriginalConstructor()->getMock();
+        $mock = $this->createStub(Request::class);
 
         if (isset($aspects['method'])) {
             $mock->method('getMethod')->willReturn($aspects['method']);
@@ -83,7 +82,10 @@ class MainFilterTest extends TestCase
         }
 
         if (isset($aspects['user_agent'])) {
-            $mock->method('getHeader')->with('User-Agent')->willReturn($aspects['user_agent']);
+            $mock->method('getHeader')->willReturnCallback(function ($name) use ($aspects) {
+                $this->assertSame('User-Agent', $name);
+                return $aspects['user_agent'];
+            });
         }
 
         if (isset($aspects['request_body'])) {
@@ -96,7 +98,7 @@ class MainFilterTest extends TestCase
 
     private function buildMockResponse(array $aspects): Response
     {
-        $mock = $this->getMockBuilder(Response::class)->disableOriginalConstructor()->getMock();
+        $mock = $this->createStub(Response::class);
 
         if (isset($aspects['status_code'])) {
             $mock->method('getStatusCode')->willReturn($aspects['status_code']);
@@ -110,7 +112,7 @@ class MainFilterTest extends TestCase
     }
 
 
-    public function scenarioProvider(): array
+    public static function scenarioProvider(): array
     {
         $scenarios = [
             'If no filters are configured, all signs point to Yes' => [
