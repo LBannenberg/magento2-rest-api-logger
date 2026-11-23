@@ -10,7 +10,6 @@ use Corrivate\RestApiLogger\Model\Config\Filter;
 use Corrivate\RestApiLogger\Filter\MainFilter;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Webapi\Rest\Response;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class MainFilterTest extends TestCase
@@ -26,44 +25,42 @@ class MainFilterTest extends TestCase
     }
 
 
-    /**
-     * @dataProvider scenarioProvider
-     */
-    #[DataProvider('scenarioProvider')]
-    public function testScenarios(array $scenario)
+    public function testScenarios()
     {
-        // ARRANGE
-        $configMock = $this->createStub(Config::class);
-        $configMock->method('getRequestFilters')->willReturn($scenario['requestFilters']);
-        $configMock->method('getResponseFilters')->willReturn($scenario['responseFilters']);
+        foreach (self::scenarioProvider() as $name => [$scenario]) {
+            // ARRANGE
+            $configMock = $this->createStub(Config::class);
+            $configMock->method('getRequestFilters')->willReturn($scenario['requestFilters']);
+            $configMock->method('getResponseFilters')->willReturn($scenario['responseFilters']);
 
-        $endpointFilterMock = $this->createStub(EndpointFilter::class);
+            $endpointFilterMock = $this->createStub(EndpointFilter::class);
 
-        $requestMock = $this->buildMockRequest($scenario['request']);
+            $requestMock = $this->buildMockRequest($scenario['request']);
 
-        $responseMock = $this->buildMockResponse($scenario['response']);
+            $responseMock = $this->buildMockResponse($scenario['response']);
 
-        $filters = new MainFilter($configMock, $endpointFilterMock);
+            $filters = new MainFilter($configMock, $endpointFilterMock);
 
-        // ACT
-        [$shouldLogRequest, $shouldCensorRequestBody] = $filters->processRequest($requestMock);
-        [$shouldLogResponse, $shouldCensorResponseBody] = $filters->processResponse($responseMock);
+            // ACT
+            [$shouldLogRequest, $shouldCensorRequestBody] = $filters->processRequest($requestMock);
+            [$shouldLogResponse, $shouldCensorResponseBody] = $filters->processResponse($responseMock);
 
-        // ASSERT
-        if ($scenario['shouldLogRequest'] !== null) {
-            $this->assertSame($scenario['shouldLogRequest'], $shouldLogRequest);
-        }
+            // ASSERT
+            if ($scenario['shouldLogRequest'] !== null) {
+                $this->assertSame($scenario['shouldLogRequest'], $shouldLogRequest, $name);
+            }
 
-        if ($scenario['shouldCensorRequestBody'] !== null) {
-            $this->assertSame($scenario['shouldCensorRequestBody'], $shouldCensorRequestBody);
-        }
+            if ($scenario['shouldCensorRequestBody'] !== null) {
+                $this->assertSame($scenario['shouldCensorRequestBody'], $shouldCensorRequestBody, $name);
+            }
 
-        if ($scenario['shouldLogResponse'] !== null) {
-            $this->assertSame($scenario['shouldLogResponse'], $shouldLogResponse);
-        }
+            if ($scenario['shouldLogResponse'] !== null) {
+                $this->assertSame($scenario['shouldLogResponse'], $shouldLogResponse, $name);
+            }
 
-        if ($scenario['shouldCensorResponseBody'] !== null) {
-            $this->assertSame($scenario['shouldCensorResponseBody'], $shouldCensorResponseBody);
+            if ($scenario['shouldCensorResponseBody'] !== null) {
+                $this->assertSame($scenario['shouldCensorResponseBody'], $shouldCensorResponseBody, $name);
+            }
         }
     }
 

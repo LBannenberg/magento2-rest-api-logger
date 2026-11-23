@@ -6,7 +6,6 @@ namespace Corrivate\RestApiLogger\Tests\Unit;
 
 use Corrivate\RestApiLogger\Filter\EndpointFilter;
 use Corrivate\RestApiLogger\Model\Config\Filter;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -22,22 +21,20 @@ class EndpointFilterTest extends TestCase
     }
 
 
-    /**
-     * @dataProvider scenarioProvider
-     */
-    #[DataProvider('scenarioProvider')]
-    public function testScenarios(array $scenario)
+    public function testScenarios()
     {
-        // ARRANGE
-        $unitUnderTest = new EndpointFilter(
-            $this->createStub(LoggerInterface::class)
-        );
+        foreach (self::scenarioProvider() as $name => [$scenario]) {
+            // ARRANGE
+            $unitUnderTest = new EndpointFilter(
+                $this->createStub(LoggerInterface::class)
+            );
 
-        // ACT
-        $match = $unitUnderTest->matchRequestToFilter($scenario['path'], $scenario['filter']);
+            // ACT
+            $match = $unitUnderTest->matchRequestToFilter($scenario['path'], $scenario['filter']);
 
-        // ASSERT
-        $this->assertSame($scenario['shouldMatch'], $match);
+            // ASSERT
+            $this->assertSame($scenario['shouldMatch'], $match, $name);
+        }
     }
 
 
